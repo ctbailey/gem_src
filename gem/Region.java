@@ -18,8 +18,8 @@
 	 */
 
 package gem;
-import static gem.AutomatonGlobal.*;
-import gem.simulation.ICell.CellState;
+import static gem.Global.*;
+import gem.simulation.board.ICell.CellState;
 
 public class Region {
 	
@@ -35,7 +35,7 @@ public class Region {
 		for(int x = xOffset; x < xOffset + width; x++) {
 			for(int y = yOffset; y < yOffset + height; y++) {
 				
-				if(automaton.getBoard().getCurrentState().getCell(x, y).getState() == CellState.ALIVE) {
+				if(simulator.getBoard().getCurrentState().getCell(x, y).getState() == CellState.ALIVE) {
 					total++;
 				}
 				

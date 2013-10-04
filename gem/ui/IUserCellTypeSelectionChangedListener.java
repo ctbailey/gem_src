@@ -19,7 +19,7 @@
 
 package gem.ui;
 
-import gem.simulation.ICell.CellState;
+import gem.simulation.board.ICell.CellState;
 
 public interface IUserCellTypeSelectionChangedListener {
 	public void userCellTypeSelectionChanged(CellState newState);

@@ -19,26 +19,31 @@
 
 package gem.ui;
 
-import static gem.AutomatonGlobal.*;
+import static gem.Global.*;
 
 import gem.*;
 import gem.simulation.*;
-import gem.simulation.AbstractBoard.GameConfigurationKey;
-import gem.simulation.ICell.CellState;
+import gem.simulation.board.BoardDimensions;
+import gem.simulation.board.IBoardSizeChangedListener;
+import gem.simulation.board.IBoardStateChangedListener;
+import gem.simulation.board.ICell.CellState;
+import gem.simulation.randomization.IRandomNumberSource;
+import gem.simulation.randomization.PseudoRandomNumberSource;
+import gem.simulation.rules.AbstractRuleSet;
+import gem.simulation.rules.IRulesChangedListener;
+import gem.simulation.state.IState;
 import gem.talk_to_outside_world.RandomDotOrgRandomNumberSource;
 import gem.talk_to_outside_world.validation.JsonLogger;
 import gem.talk_to_outside_world.validation.SimpleValidationBoardState;
-import gem.ui.BoardPanel.BoardDisplayConfigurationKey;
-import gem.ui.BoardPanel.MapDisplaySettings;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.io.*;
 
 public class UserInterface {
-	public static final boolean IS_PUBLIC_BUILD = true;
 	
 	public JPanel controlPanel;
 	public JPanel infoPanel;
@@ -48,27 +53,32 @@ public class UserInterface {
 	public JRadioButtonMenuItem trueRandomModeRB;
 	public SpinnerNumberModel randomizeSpinnerModel;
 	public JCheckBox goForwardCheckBox;
-	public BoardPanel boardPanel;
-		
-	public boolean showDebugArea = true;
+	
 	public File tallyRegionsFile;	
 	
 	public JFrame debugFrame;
 	public JScrollPane debugScrollPane;
 	
 	public JMenuBar menuBar;
+		public JMenu fileMenu;
+		public JMenu simulationMenu;
+		public JMenu viewMenu;
+		public JMenu randomizationMenu;
+		public JMenu experimentalMenu;
 	
-	public JTextArea debugArea; // Separate window where debugging messages appear; accessed through static methods in the Debug class
 	
 	public JFrame mainFrame; // The main window of the automaton that contains the board area, control area, etc.
 		public JScrollPane boardScrollPane; // The scrolling panel; contains the board area
 			public JViewport boardViewport; // The actual "port hole" through which one sees the underlying object when it won't fit in the boardScrollPane
+		public InsetPanel insetPanel;
+		public BoardPanel boardPanel;
 		public JLabel sliderMaxLabel;
 		public JLabel sliderMinLabel;
 		public JCheckBoxMenuItem showMapMenuItem; // A check box in the "Board" menu which allows the user to toggle display of an already-in-memory map image.
 		public JRadioButton stretchMapToFitBoardRB;
 		public JRadioButton scaleMapToFitBoardRB;
-	public JSlider playbackSlider;
+		public JSlider playbackSlider;
+	public JTextArea debugArea; // Separate window where debugging messages appear; accessed through static methods in the Debug class
 	
 	// Constants
 	private static final String ABOUT_MESSAGE = 
@@ -87,6 +97,7 @@ public class UserInterface {
 	// Notifiers
 	public GoForwardNotifier goForwardNotifier;
 	public ShouldShowMapNotifier shouldShowMapNotifier;
+	public MouseLeftBoardNotifier mouseLeftBoardNotifier;
 	
 	static final long serialVersionUID = 6;
 	
@@ -147,7 +158,7 @@ public class UserInterface {
 		
 		// Build the inset panel, which simply holds the board panel in the center of the scrollpane
 		// The InsetPanel class also handles zooming with the mouse wheel
-		InsetPanel insetPanel = new InsetPanel(new GridBagLayout()); 
+		insetPanel = new InsetPanel(new GridBagLayout()); 
 		insetPanel.add(boardPanel, new GridBagConstraints());
 		
 		// Create the scrollpane and add the inset panel to it
@@ -159,6 +170,8 @@ public class UserInterface {
 
 		// Make a persistent reference to the JScrollPane's viewport to enable custom scrolling
 		boardViewport = boardScrollPane.getViewport();
+		
+		mouseLeftBoardNotifier = new MouseLeftBoardNotifier();
 		
 	}
 	void buildWesternArea() {
@@ -335,37 +348,20 @@ public class UserInterface {
 		
 	}
 	void buildMenuArea() {
-	
-		/*
-		 * Builds the menu area at the top of the mainFrame.
-		 * It contains three menus: 
-		 * 	
-		 * 	- The File menu provides ways to save and load the
-		 * 	state and rule set of the automaton.
-		 * 	
-		 * 	- The Board menu allows the user to manipulate the board
-		 * 	in less common ways. (E.g. changing the number of cells on
-		 * 	the board, displaying images behind the automaton)
-		 * 
-		 * 	- The Randomization menu controls randomization options such
-		 * 	as whether to use the Java.lang.Math pseudo-random number generator
-		 * 	or the truly random number service from random.org
-		 * 
-		 */
 		
 		// Create the menu bar and its menus
-	
 			menuBar = new JMenuBar();
-			
-			JMenu fileMenu = new JMenu("File");
-			JMenu boardMenu = new JMenu("Board");
-			JMenu randomizationMenu = new JMenu("Randomization");
-			JMenu experimentalMenu = new JMenu("Experimental");
+			fileMenu = new JMenu("File");
+			simulationMenu = simulator.getJMenu();
+			viewMenu = boardPanel.getJMenu();
+			randomizationMenu = new JMenu("Randomization");
+			experimentalMenu = new JMenu("Experimental");
 		
 		// Populate the menu bar
 		
 			menuBar.add(fileMenu);
-			menuBar.add(boardMenu);
+			menuBar.add(simulationMenu);
+			menuBar.add(viewMenu);
 			menuBar.add(randomizationMenu);
 			if(!IS_PUBLIC_BUILD) { menuBar.add(experimentalMenu); }
 		
@@ -390,57 +386,7 @@ public class UserInterface {
 			readCurrentStateFromJsonItem.addActionListener(new ReadCurrentStateFromJsonFileListener());
 			fileMenu.add(readCurrentStateFromJsonItem);
 			
-		// Populate the Board menu
-			
-			JMenuItem userBoardSizeItem = new JMenuItem("Resize board");
-			userBoardSizeItem.addActionListener(new ResizeBoardListener());
-			boardMenu.add(userBoardSizeItem);
-			
-			JCheckBoxMenuItem smallWorldItem = new JCheckBoxMenuItem("Use small world neighbors");
-			smallWorldItem.addItemListener(new SmallWorldCheckBoxItemListener());
-			
-			JCheckBoxMenuItem linkAgeAndOpacityMenuItem = new JCheckBoxMenuItem("Link age and opacity");
-			linkAgeAndOpacityMenuItem.addItemListener(new LinkAgeAndOpacityListener());
-			linkAgeAndOpacityMenuItem.setSelected(false);
-			boardMenu.add(linkAgeAndOpacityMenuItem);
-			
-			/*
-			 * MAP OPTIONS COMMENTED OUT
-			 */
-			/*
-			JMenu mapDisplayOptionsMenu = new JMenu("Map display options:");
-			
-				ButtonGroup mapDisplayOptionsRBGroup = new ButtonGroup();
-			
-				stretchMapToFitBoardRB = new JRadioButton("Stretch map to fit board (may distort map)");
-				stretchMapToFitBoardRB.addActionListener(new StretchMapToFitBoardListener());
-				mapDisplayOptionsRBGroup.add(stretchMapToFitBoardRB);
-				stretchMapToFitBoardRB.setSelected(true); // this radio button is selected by default
-				
-				scaleMapToFitBoardRB = new JRadioButton("Scale map to fill board (certain parts of the map may not show)");
-				scaleMapToFitBoardRB.addActionListener(new ScaleMapToFillBoardListener());
-				mapDisplayOptionsRBGroup.add(scaleMapToFitBoardRB);
-				
-				mapDisplayOptionsMenu.add(stretchMapToFitBoardRB);
-				mapDisplayOptionsMenu.add(scaleMapToFitBoardRB);
-			
-			JMenuItem mapWizardItem = new JMenuItem("Load Map");
-			mapWizardItem.addActionListener(new MapWizardListener());
-			
-			
-			showMapMenuItem = new JCheckBoxMenuItem("Show Map");
-				showMapMenuItem.addItemListener(shouldShowMapNotifier);
-				showMapMenuItem.setSelected(false);
-				*/
-			
-			boardMenu.add(smallWorldItem);
-			//boardMenu.add(mapDisplayOptionsMenu);		
-			//boardMenu.add(mapWizardItem);
-			//boardMenu.add(showMapMenuItem);
-			
-			
 		// Populate the Randomization menu
-			
 			pseudoRandomModeRB = new JRadioButtonMenuItem("Pseudo-random mode");
 			pseudoRandomModeRB.setSelected(true);
 			
@@ -455,7 +401,6 @@ public class UserInterface {
 			randomizationMenu.add(pseudoRandomModeRB);
 			
 		// Populate the Experimental menu
-			
 			if(!IS_PUBLIC_BUILD) {
 				JMenuItem regionTallyFileItem = new JMenuItem("Decide Where to Log Moran's I");
 				regionTallyFileItem.addActionListener(new RegionsFileListener());
@@ -481,9 +426,7 @@ public class UserInterface {
 			}
 		
 		// Add the menu bar to the mainFrame
-		
 			mainFrame.setJMenuBar(menuBar);
-			
 	}
 	void buildSouthernArea() {
 		
@@ -570,30 +513,30 @@ public class UserInterface {
 		private static final String TEXT = "Delay between time steps (ms):";
 		public PlaybackSpeedLabelUpdater(JLabel playbackSpeedLabel) {
 			this.playbackSpeedLabel = playbackSpeedLabel;
-			playbackSpeedLabel.setText(TEXT + automaton.getDelayBetweenIterations());
-			automaton.addPlaybackSpeedChangedListener(this);
+			playbackSpeedLabel.setText(TEXT + simulator.getDelayBetweenIterations());
+			simulator.addPlaybackSpeedChangedListener(this);
 		}
 		@Override
 		public void playbackSpeedChanged(int newPlaybackSpeed) {
 			playbackSpeedLabel.setText(TEXT + newPlaybackSpeed);			
 		}
 	}
-	class StartButtonUpdater implements IAutomatonStartedListener, IAutomatonStoppedListener {
+	class StartButtonUpdater implements ISimulationStartedListener, ISimulationStoppedListener {
 		JButton startButton;
 		private static final String START_STRING = "Start";
 		private static final String STOP_STRING = "Stop";
 		public StartButtonUpdater(JButton startButton) {
 			this.startButton = startButton;
 			startButton.setText(START_STRING);
-			automaton.addAutomatonStartedListener(this);
-			automaton.addAutomatonStoppedListener(this);
+			simulator.addAutomatonStartedListener(this);
+			simulator.addAutomatonStoppedListener(this);
 		}
 		@Override
 		public void automatonStopped(IState finalBoardState) {
 			startButton.setText(START_STRING);
 		}
 		@Override
-		public void automatonStarted() {
+		public void simulationStarted() {
 			startButton.setText(STOP_STRING);
 		}
 	}
@@ -618,7 +561,7 @@ public class UserInterface {
 		public GenerationNumberUpdater(JLabel generationNumberLabel) {
 			this.generationNumberLabel = generationNumberLabel;
 			generationNumberLabel.setText(TEXT + 0);
-			automaton.getBoard().addBoardStateChangedListener(this);
+			simulator.getBoard().addBoardStateChangedListener(this);
 		}
 		@Override
 		public void boardStateChanged(IState newCurrentState, int newGeneration) {
@@ -629,8 +572,8 @@ public class UserInterface {
 		private JLabel rulesLabel;
 		public RulesLabelUpdater(JLabel rulesLabel) {
 			this.rulesLabel = rulesLabel;
-			rulesLabel.setText(automaton.getBoard().getRules().visualizeForUser());
-			automaton.getBoard().addRulesChangedListener(this);
+			rulesLabel.setText(simulator.getBoard().getRules().visualizeForUser());
+			simulator.getBoard().addRulesChangedListener(this);
 		}
 		@Override
 		public void rulesChanged(AbstractRuleSet rules) {
@@ -643,8 +586,8 @@ public class UserInterface {
 		private static final String PREFIX = "Board dimensions: ";
 		public BoardDimensionsUpdater(JLabel boardDimensionsLabel) {
 			this.boardDimensionsLabel = boardDimensionsLabel;
-			boardDimensionsLabel.setText(PREFIX + automaton.getBoard().getCurrentState().getDimensions().toString());
-			automaton.getBoard().addBoardSizeChangedListener(this);
+			boardDimensionsLabel.setText(PREFIX + simulator.getBoard().getCurrentState().getDimensions().toString());
+			simulator.getBoard().addBoardSizeChangedListener(this);
 		}
 		@Override
 		public void boardSizeChanged(BoardDimensions newBoardDimensions) {
@@ -699,25 +642,70 @@ public class UserInterface {
 			}
 		}
 	}
+	public class MouseLeftBoardNotifier implements MouseMotionListener {
+		private boolean previousPointWasOnBoard = false;
+		private List<IMouseLeftBoardListener> mouseLeftBoardListeners = new ArrayList<IMouseLeftBoardListener>();
+		
+		public MouseLeftBoardNotifier() {
+			insetPanel.addMouseMotionListener(this);
+			boardPanel.addMouseMotionListener(this);
+		}
+		
+		@Override
+		public void mouseDragged(MouseEvent e) {
+			tryNotifyListeners(e);
+		}
+		@Override
+		public void mouseMoved(MouseEvent e) {
+			tryNotifyListeners(e);
+		}
+		private boolean tryNotifyListeners(MouseEvent e) {
+			boolean leftBoard = leftBoard(e);
+			if(leftBoard) {
+				notifyMouseLeftBoardListeners();
+			}
+			previousPointWasOnBoard = isOnBoard(e);
+			return leftBoard;
+		}
+		private boolean leftBoard(MouseEvent e) {
+			return previousPointWasOnBoard 
+					&& !isOnBoard(e);
+		}
+		private boolean isOnBoard(MouseEvent e) {
+			return e.getSource() == boardPanel;
+		}
+		
+		public void addMouseLeftBoardListener(IMouseLeftBoardListener listener) {
+			mouseLeftBoardListeners.add(listener);
+		}
+		public void removeMouseLeftBoardListener(IMouseLeftBoardListener listener) {
+			mouseLeftBoardListeners.remove(listener);
+		}
+		private void notifyMouseLeftBoardListeners() {
+			for(IMouseLeftBoardListener listener : mouseLeftBoardListeners) {
+				listener.mouseLeftBoard();
+			}
+		}
+	}
 	
 	// Button listeners
 	class GetRulesListener implements ActionListener {
 		public void actionPerformed(ActionEvent ev) {
-			automaton.getBoard().updateRulesFromUserInput(mainFrame);
+			simulator.getBoard().updateRulesFromUserInput(mainFrame);
 		}
 	}
 	class StartIteratingListener implements ActionListener {
 		public void actionPerformed(ActionEvent ev) {
-			if(automaton.isPlaying()) {
-				automaton.stopSimulationIfRunning();
+			if(simulator.isPlaying()) {
+				simulator.stopSimulationIfRunning();
 			} else {
-				automaton.beginSimulationInSeparateThreadIfNotAlreadyRunning();
+				simulator.beginSimulationInSeparateThreadIfNotAlreadyRunning();
 			}
 		}
 	}
 	class IterateListener implements ActionListener {
 		public void actionPerformed(ActionEvent ev) {
-			AutomatonGlobal.automaton.tryToIterateAutomaton();
+			Global.simulator.tryToIterateAutomaton();
 		}
 	}
 	class RandomizeListener implements ActionListener {
@@ -730,7 +718,7 @@ public class UserInterface {
 			}
 			double threshold = getThreshold();
 			CellState stateToRandomize = boardPanel.getUserCellTypeSelection();
-			automaton.getBoard().randomizeBoard(randomNumberSource, threshold, stateToRandomize);
+			simulator.getBoard().randomizeBoard(randomNumberSource, threshold, stateToRandomize);
 		}
 		private double getThreshold() {
 			int currentSpinnerValue = (Integer)randomizeSpinnerModel.getValue();
@@ -739,33 +727,33 @@ public class UserInterface {
 	}
 	class ClearPlaybackHistoryListener implements ActionListener {
 		public void actionPerformed(ActionEvent ev) {
-			automaton.stopSimulationIfRunning();
-			AutomatonGlobal.automaton.clearBoard(); // then clear the automaton
+			simulator.stopSimulationIfRunning();
+			Global.simulator.clearBoard(); // then clear the automaton
 		}
 	}
 	class ClearSelectedCellTypeListener implements ActionListener {
 		public void actionPerformed(ActionEvent ev) {
-			AutomatonGlobal.automaton.getBoard().clearCellTypeFromCurrentState(boardPanel.getUserCellTypeSelection());
+			Global.simulator.getBoard().clearCellTypeFromCurrentState(boardPanel.getUserCellTypeSelection());
 		}
 	}
 	class FasterListener implements ActionListener {
 		public void actionPerformed(ActionEvent ev) {
-			automaton.incrementPlaybackSpeed();
+			simulator.incrementPlaybackSpeed();
 		}
 	}
 	class SlowerListener implements ActionListener {
 		public void actionPerformed(ActionEvent ev) {
-			automaton.decrementPlaybackSpeed();
+			simulator.decrementPlaybackSpeed();
 		}
 	}
 	class StoreListener implements ActionListener {
 		public void actionPerformed(ActionEvent ev) {
-			AutomatonGlobal.automaton.getBoard().copyStateToClipboard();
+			Global.simulator.getBoard().copyStateToClipboard();
 		}
 	}
 	class RecallListener implements ActionListener {
 		public void actionPerformed(ActionEvent ev) {
-			automaton.getBoard().pasteFromClipboard();
+			simulator.getBoard().pasteFromClipboard();
 		}
 	}
 	class LivingCellRBListener implements ActionListener {
@@ -858,11 +846,6 @@ public class UserInterface {
 			}
 		}
 	}
-	class ResizeBoardListener implements ActionListener {
-		public void actionPerformed(ActionEvent ev) {
-			automaton.getBoard().resizeBasedOnUserInput();
-		}
-	}
 	class GeocodeListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			geography.buildWindow();
@@ -871,21 +854,6 @@ public class UserInterface {
 	class MetadataListener implements ActionListener {
 		public void actionPerformed(ActionEvent ev) {
 			metadata.editMetadata();
-		}
-	}
-	class MapWizardListener implements ActionListener {
-		public void actionPerformed(ActionEvent e) {
-			mapWizard.launch();
-		}
-	}
-	class StretchMapToFitBoardListener implements ActionListener {
-		public void actionPerformed(ActionEvent ev) {
-			boardPanel.setMapDisplaySettings(MapDisplaySettings.STRETCH_MAP_TO_FIT_BOARD);
-		}
-	}
-	class ScaleMapToFillBoardListener implements ActionListener {
-		public void actionPerformed(ActionEvent ev) {
-			boardPanel.setMapDisplaySettings(MapDisplaySettings.SCALE_MAP_TO_FILL_BOARD);
 		}
 	}
 	class RegionsFileListener implements ActionListener {
@@ -952,7 +920,7 @@ public class UserInterface {
 				int userChose = fileChooser.showSaveDialog(mainFrame);
 				if(userChose == JFileChooser.APPROVE_OPTION) {
 					File file = fileChooser.getSelectedFile();
-					JsonLogger.writeJsonToFile(file, new SimpleValidationBoardState(automaton.getBoard().getCurrentState()).toJson());
+					JsonLogger.writeJsonToFile(file, new SimpleValidationBoardState(simulator.getBoard().getCurrentState()).toJson());
 				}
 		
 			} catch(Exception ex) {ex.printStackTrace();}
@@ -965,31 +933,14 @@ public class UserInterface {
 				int userChose = fileChooser.showOpenDialog(mainFrame);
 				if(userChose == JFileChooser.APPROVE_OPTION) {
 					File file = fileChooser.getSelectedFile();
-					automaton.getBoard().loadCurrentStateFromFile(file);
+					simulator.getBoard().loadCurrentStateFromFile(file);
 				}
 		
 			} catch(Exception ex) {ex.printStackTrace();}
 			
 		}
 	}
-	class SmallWorldCheckBoxItemListener implements ItemListener {
-		public void itemStateChanged(ItemEvent ev) {
-			try {
-				automaton.getBoard().setValueForConfigurationKey(GameConfigurationKey.SmallWorld, (ev.getStateChange() == ItemEvent.SELECTED));
-			} catch(InvalidConfigurationException ex) {
-				JOptionPane.showMessageDialog(mainFrame, "Current board cannot use small world neighbors.");
-			}
-		}
-	}
-	class LinkAgeAndOpacityListener implements ItemListener {
-		public void itemStateChanged(ItemEvent ev) {
-			try {
-				boardPanel.setValueForConfigurationKey(BoardDisplayConfigurationKey.LinkAgeToAlpha, ev.getStateChange() == ItemEvent.SELECTED);
-			} catch (InvalidConfigurationException e) {
-				e.printStackTrace();
-			}
-		}
-	}
+	
 	class ShowAboutListener implements ActionListener {
 		public void actionPerformed(ActionEvent ev) {
 			JOptionPane.showMessageDialog(mainFrame, ABOUT_MESSAGE);
@@ -1004,7 +955,7 @@ public class UserInterface {
 			FileOutputStream fileOut = new FileOutputStream(file);
 			ObjectOutputStream output = new ObjectOutputStream(fileOut);
 			
-			automaton.save(output);
+			simulator.save(output);
 			boardPanel.save(output);
 			geography.save(output);
 			metadata.save(output);
@@ -1025,7 +976,7 @@ public class UserInterface {
 			FileInputStream fileIn = new FileInputStream(file);
 			ObjectInputStream input = new ObjectInputStream(fileIn);
 			
-			automaton.load(input);
+			simulator.load(input);
 			boardPanel.load(input);
 			geography.load(input);
 			metadata.load(input);

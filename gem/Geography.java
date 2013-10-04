@@ -19,14 +19,14 @@
 
 package gem;
 
-import static gem.AutomatonGlobal.*;
+import static gem.Global.*;
 
-import gem.simulation.IAutomatonStoppedListener;
-import gem.simulation.IBoardDidIterateListener;
-import gem.simulation.IState;
-import gem.simulation.ICell.CellState;
+import gem.ui.board_image.ImageRenderer.ImageDisplaySettings;
+import gem.simulation.ISimulationStoppedListener;
+import gem.simulation.board.IBoardDidIterateListener;
+import gem.simulation.board.ICell.CellState;
+import gem.simulation.state.IState;
 import gem.talk_to_outside_world.AutomatonSerializable;
-import gem.ui.BoardPanel.MapDisplaySettings;
 import gem.ui.BoardPanel.MouseButton;
 
 import java.awt.*;
@@ -39,7 +39,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import java.io.*;
 
-public class Geography implements AutomatonSerializable, IBoardDidIterateListener, IAutomatonStoppedListener {
+public class Geography implements AutomatonSerializable, IBoardDidIterateListener, ISimulationStoppedListener {
 
 	JFrame geoWindow;
 	GeocodingPanel geocodingPanel;
@@ -398,8 +398,8 @@ public class Geography implements AutomatonSerializable, IBoardDidIterateListene
 	
 	void interpolateEntireBoard() {
 		
-		longitudeArray = new double[automaton.getBoard().getCurrentState().getWidth()][automaton.getBoard().getCurrentState().getHeight()];
-		latitudeArray = new double[automaton.getBoard().getCurrentState().getWidth()][automaton.getBoard().getCurrentState().getHeight()];
+		longitudeArray = new double[simulator.getBoard().getCurrentState().getWidth()][simulator.getBoard().getCurrentState().getHeight()];
+		latitudeArray = new double[simulator.getBoard().getCurrentState().getWidth()][simulator.getBoard().getCurrentState().getHeight()];
 		
 		try{
 		
@@ -437,7 +437,7 @@ public class Geography implements AutomatonSerializable, IBoardDidIterateListene
 	
 	public void calculateSpatialAutocorrelation(IState currentBoardState) {
 		
-		double cellStateAverage = automaton.getCellStateAverage();
+		double cellStateAverage = simulator.getCellStateAverage();
 		double weightTotal = 0;
 		double numerator = 0;
 		double denominatorLeft = 0;
@@ -487,8 +487,8 @@ public class Geography implements AutomatonSerializable, IBoardDidIterateListene
 		
 		ArrayList<Point> neighbors = new ArrayList<Point>();
 		
-		for(int x = 0; x < automaton.getBoard().getCurrentState().getWidth(); x++) {
-			for(int y = 0; y < automaton.getBoard().getCurrentState().getHeight(); y++) {
+		for(int x = 0; x < simulator.getBoard().getCurrentState().getWidth(); x++) {
+			for(int y = 0; y < simulator.getBoard().getCurrentState().getHeight(); y++) {
 			
 				Point currentPoint = new Point(x,y);
 				if(currentPoint.distance(target) <= distance
@@ -512,8 +512,8 @@ public class Geography implements AutomatonSerializable, IBoardDidIterateListene
 		 *  it creates y + 1 regions.
 		 */
 		
-		int boardWidth = automaton.getBoard().getCurrentState().getWidth();
-		int boardHeight = automaton.getBoard().getCurrentState().getHeight();
+		int boardWidth = simulator.getBoard().getCurrentState().getWidth();
+		int boardHeight = simulator.getBoard().getCurrentState().getHeight();
 	
 		int regionWidth = (int) Math.floor(boardWidth/x);
 		int regionHeight = (int) Math.floor(boardHeight/y);
@@ -676,13 +676,13 @@ public class Geography implements AutomatonSerializable, IBoardDidIterateListene
 			interpolateEntireBoard();
 				
 			Debug.printLine("Longitude array:");
-			Debug.print2dArrayElements(longitudeArray);
+			Debug.print(longitudeArray);
 				
 			Debug.newLine();
 			Debug.newLine();
 			
 			Debug.printLine("Latitude array:");
-			Debug.print2dArrayElements(latitudeArray);
+			Debug.print(latitudeArray);
 			
 			Debug.newLine();
 			Debug.newLine();
@@ -734,7 +734,7 @@ public class Geography implements AutomatonSerializable, IBoardDidIterateListene
 		
 		boolean showMap; // Boolean flag which declares whether to show the map panel
 		
-		MapDisplaySettings mapDisplaySettings; // Enum instance
+		ImageDisplaySettings mapDisplaySettings; // Enum instance
 		
 		public GeocodingPanel() {
 			
@@ -756,9 +756,9 @@ public class Geography implements AutomatonSerializable, IBoardDidIterateListene
 			map = userInterface.boardPanel.map;
 			
 			// The program defaults to stretching the map to fit the board
-			mapDisplaySettings = MapDisplaySettings.STRETCH_MAP_TO_FIT_BOARD;
+			mapDisplaySettings = ImageDisplaySettings.STRETCH_TO_FIT_BOARD;
 			
-			displayArray = new int[automaton.getBoard().getCurrentState().getWidth()][automaton.getBoard().getCurrentState().getHeight()];
+			displayArray = new int[simulator.getBoard().getCurrentState().getWidth()][simulator.getBoard().getCurrentState().getHeight()];
 			boardImageArray = new int[displayArray.length*displayArray[0].length];
 			
 			referencePointMap = new HashMap<Point,double[]>();
@@ -803,7 +803,7 @@ public class Geography implements AutomatonSerializable, IBoardDidIterateListene
 				
 				switch(mapDisplaySettings) {
 				
-					case STRETCH_MAP_TO_FIT_BOARD:
+					case STRETCH_TO_FIT_BOARD:
 						// Draw the map
 						g2d.drawImage(map, // the image to draw
 							0,0,this.getWidth(),this.getHeight(), // the dimensions of the image (draw the image so it is as wide and tall as the boardPanel)
@@ -814,7 +814,7 @@ public class Geography implements AutomatonSerializable, IBoardDidIterateListene
 						
 						break;
 						
-					case SCALE_MAP_TO_FILL_BOARD:
+					case SCALE_TO_FILL_BOARD:
 						// Calculate the appropriate scale
 							double xScale = (double) this.getWidth()/map.getWidth();
 							double yScale = (double) this.getHeight()/map.getHeight();
@@ -822,8 +822,8 @@ public class Geography implements AutomatonSerializable, IBoardDidIterateListene
 							
 							int mapWidth = (int) (map.getWidth()*scale);
 							int mapHeight = (int) (map.getHeight()*scale);
-							int x = (AutomatonGlobal.userInterface.boardPanel.getWidth() - mapWidth)/2;
-							int y = (AutomatonGlobal.userInterface.boardPanel.getHeight() - mapHeight)/2;
+							int x = (Global.userInterface.boardPanel.getWidth() - mapWidth)/2;
+							int y = (Global.userInterface.boardPanel.getHeight() - mapHeight)/2;
 						
 						// Draw the map
 						g2d.drawImage(map,
@@ -1043,13 +1043,13 @@ public class Geography implements AutomatonSerializable, IBoardDidIterateListene
 		
 		public void stretchMapToFitBoard() {
 			
-			mapDisplaySettings = MapDisplaySettings.STRETCH_MAP_TO_FIT_BOARD;
+			mapDisplaySettings = ImageDisplaySettings.STRETCH_TO_FIT_BOARD;
 			
 		}
 		
 		public void scaleMapToFillBoard() {
 			
-			mapDisplaySettings = MapDisplaySettings.SCALE_MAP_TO_FILL_BOARD;
+			mapDisplaySettings = ImageDisplaySettings.SCALE_TO_FILL_BOARD;
 			
 		}
 		
@@ -1199,7 +1199,6 @@ public class Geography implements AutomatonSerializable, IBoardDidIterateListene
 								|| ( e.getY() >= getHeight() )
 								|| ( e.getX() <= 0 )
 								|| ( e.getY() <= 0 ) 
-								|| currentButtonPressed == MouseButton.NONE // or if there is no button pressed
 							) { 
 							
 							// do nothing
@@ -1253,6 +1252,9 @@ public class Geography implements AutomatonSerializable, IBoardDidIterateListene
 							
 						}
 						break;
+						
+					case NONE:
+						// Do nothing
 			
 				}
 				

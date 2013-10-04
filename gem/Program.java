@@ -18,7 +18,8 @@
 	 */
 
 package gem;
-import gem.simulation.Automaton;
+import gem.simulation.Simulator;
+import gem.simulation.state.neighbor_topology.TopologyManager;
 import gem.talk_to_outside_world.Metadata;
 import gem.ui.MapWizard;
 import gem.ui.UserInterface;
@@ -28,13 +29,14 @@ public class Program {
 	
 	public static void execute(String[] args) {
 		buildAutomatonModules();
-		AutomatonGlobal.userInterface.buildUI();
+		Global.userInterface.buildUI();
 	}
 	public static void buildAutomatonModules() {
-		AutomatonGlobal.userInterface = new UserInterface();
-		AutomatonGlobal.automaton = new Automaton();
-		AutomatonGlobal.mapWizard = new MapWizard();
-		AutomatonGlobal.geography = new Geography();
-		AutomatonGlobal.metadata = new Metadata();
+		Global.userInterface = new UserInterface();
+		Global.topologyManager = new TopologyManager();
+		Global.simulator = new Simulator();
+		Global.mapWizard = new MapWizard();
+		Global.geography = new Geography();
+		Global.metadata = new Metadata();
 	}
 }

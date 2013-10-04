@@ -19,7 +19,8 @@
 
 package gem.talk_to_outside_world.validation;
 
-import gem.simulation.*;
+import gem.simulation.board.IBoardWillIterateListener;
+import gem.simulation.state.IState;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /*

@@ -19,9 +19,11 @@
 
 package gem.talk_to_outside_world.validation;
 
-import gem.simulation.ConwayCell;
-import gem.simulation.ConwayState;
-import gem.simulation.IState;
+import gem.Global;
+import gem.simulation.board.BoardDimensions;
+import gem.simulation.state.ConwayCell;
+import gem.simulation.state.ConwayState;
+import gem.simulation.state.IState;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,7 +52,7 @@ public class SimpleValidationBoardState {
 		for(SimpleValidationCell c : cells) {
 			conwayCells[c.x][c.y] = c.toConwayCell();
 		}
-		return new ConwayState(conwayCells);
+		return new ConwayState(conwayCells, Global.topologyManager.createNeighborGraphWithCurrentTopology(new BoardDimensions(conwayCells)));
 	}
 	private int findHighestX(SimpleValidationCell[] cs) {
 		int highestSoFar = 0;

@@ -20,7 +20,7 @@
 package gem.talk_to_outside_world.validation;
 
 import static gem.LamsasMetadataModel.*;
-import gem.simulation.ConwayCell;
+import gem.simulation.state.ConwayCell;
 
 public class LamsasCell extends ConwayCell {
 	

@@ -23,7 +23,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.JPanel;
 
-import static gem.AutomatonGlobal.*;
+import static gem.Global.*;
 
 public class InsetPanel extends JPanel implements MouseWheelListener {
 

@@ -20,9 +20,9 @@
 package gem.talk_to_outside_world.validation;
 
 import static gem.LamsasMetadataModel.*;
-import gem.simulation.ConwayCell;
-import gem.simulation.ICell;
-import gem.simulation.InvalidCellStateException;
+import gem.simulation.board.ICell;
+import gem.simulation.board.InvalidCellStateException;
+import gem.simulation.state.ConwayCell;
 
 public class SimpleValidationCell implements ICell {
 	

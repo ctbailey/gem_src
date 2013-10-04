@@ -19,10 +19,9 @@
 
 package gem.ui;
 
-import static gem.AutomatonGlobal.*;
+import static gem.Global.*;
 
-import gem.simulation.BoardDimensions;
-import gem.ui.BoardPanel.MapDisplaySettings;
+import gem.simulation.board.BoardDimensions;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -61,7 +60,7 @@ public class MapWizard {
 		static final int CELL_DENSITY_MAX = 150000; // The cell density value at the far right of the slider
 		static final int CELL_DENSITY_INIT = 10; // The starting cell density value. The slider starts at the far left, so it's the same as the minimum.
 	private static final int BOARD_MIN_SIZE = 100;
-	private List<IMapDisplayListener> mapDisplayListeners;
+	private List<IMapImageLoadedListener> mapDisplayListeners;
 		
 	BufferedImage map; // The map image to be displayed; selected when the map wizard opens.
 	File mapFile;
@@ -297,7 +296,6 @@ public class MapWizard {
 		 * Opens a file chooser for the user to select a map.
 		 * If the user selects something and it is indeed an image, returns true,
 		 * otherwise returns false.
-		 * 
 		 */
 		
 		JFileChooser fileChooser = new JFileChooser();
@@ -416,15 +414,15 @@ public class MapWizard {
 	}
 
 	// Event methods
-	public void addMapDisplayListener(IMapDisplayListener listener) {
+	public void addMapDisplayListener(IMapImageLoadedListener listener) {
 		mapDisplayListeners.add(listener);
 	}
-	public void removeMapDisplayListener(IMapDisplayListener listener) {
+	public void removeMapDisplayListener(IMapImageLoadedListener listener) {
 		mapDisplayListeners.remove(listener);
 	}
-	private void notifyMapDisplayListeners(boolean showMap, Image map, int widthInCells, int heightInCells) {
-		for(IMapDisplayListener listener : mapDisplayListeners) {
-			listener.mapInfoChanged(showMap, map, widthInCells, heightInCells);
+	private void notifyMapImageLoadedListeners(BufferedImage map) {
+		for(IMapImageLoadedListener listener : mapDisplayListeners) {
+			listener.mapImageLoaded(map);
 		}
 	}
 	
@@ -563,15 +561,14 @@ public class MapWizard {
 			if(optionSelected == JOptionPane.YES_OPTION) {
 				Dimension mapPanelDimensions = mapPanel.getPreferredSize();
 				
-				automaton.getBoard().resize(new BoardDimensions(columns, rows));
+				simulator.getBoard().resize(new BoardDimensions(columns, rows));
 				userInterface.boardPanel.setPreferredSize(mapPanelDimensions);
 				
 				userInterface.showMapMenuItem.setSelected(true);
 				
-				userInterface.boardPanel.setMapDisplaySettings(MapDisplaySettings.STRETCH_MAP_TO_FIT_BOARD);
 				userInterface.stretchMapToFitBoardRB.setSelected(true);
 				
-				notifyMapDisplayListeners(true, map, columns, rows);
+				notifyMapImageLoadedListeners(map);
 				
 				wizardWindow.dispose();
 			}

@@ -19,11 +19,10 @@
 
 package gem.talk_to_outside_world;
 
-import static gem.AutomatonGlobal.*;
+import static gem.Global.*;
 
 import gem.Debug;
-import gem.simulation.NoFreeCellsException;
-import gem.simulation.ICell.CellState;
+import gem.simulation.board.ICell.CellState;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -130,7 +129,7 @@ public class Metadata implements AutomatonSerializable {
 					
 					in.close();
 
-					int cellsInAutomaton = automaton.getBoard().getCurrentState().getWidth() * automaton.getBoard().getCurrentState().getHeight();
+					int cellsInAutomaton = simulator.getBoard().getCurrentState().getWidth() * simulator.getBoard().getCurrentState().getHeight();
 					metadataEntries = findNumberOfMetadataEntries();
 					
 					if(metadataEntries > cellsInAutomaton) {
@@ -200,7 +199,7 @@ public class Metadata implements AutomatonSerializable {
 		
 		determineCategoriesToParse(); // Updates categoryIdentifiers to reflect the categories the user has selected.
 		
-		metadataArray = new String[automaton.getBoard().getCurrentState().getWidth()][automaton.getBoard().getCurrentState().getHeight()][categoryIdentifiers.length];
+		metadataArray = new String[simulator.getBoard().getCurrentState().getWidth()][simulator.getBoard().getCurrentState().getHeight()][categoryIdentifiers.length];
 		initializeMetadataArray(metadataArray);
 		
 		usedPoints = new ArrayList<Point>();
@@ -258,8 +257,8 @@ public class Metadata implements AutomatonSerializable {
 		Point currentPoint = new Point(-1,-1);
 		Point closestPoint = new Point(-1,-1);
 		
-		for(int x = 0; x < automaton.getBoard().getCurrentState().getWidth(); x++) {
-			for(int y = 0; y < automaton.getBoard().getCurrentState().getHeight(); y++) {
+		for(int x = 0; x < simulator.getBoard().getCurrentState().getWidth(); x++) {
+			for(int y = 0; y < simulator.getBoard().getCurrentState().getHeight(); y++) {
 				
 				currentPoint.setLocation(x,y);
 				currentLongitudeDifference = Math.abs(targetLongitude - geography.longitudeArray[x][y]);
@@ -369,7 +368,7 @@ public class Metadata implements AutomatonSerializable {
 	
 	ArrayList<HashMap<String,Integer>> calculateMetadataQuotas(ArrayList<HashMap<String,Integer>> metadataQuantities) {
 		
-		int totalCellsInAutomaton = automaton.getBoard().getCurrentState().getNumberOfCells() - automaton.getBoard().getCurrentState().getNumberOfCellsOfType(CellState.IMPASSABLE);
+		int totalCellsInAutomaton = simulator.getBoard().getCurrentState().getNumberOfCells() - simulator.getBoard().getCurrentState().getNumberOfCellsOfType(CellState.IMPASSABLE);
 		int cellsWithoutMetadata = totalCellsInAutomaton - metadataEntries;
 		ArrayList<HashMap<String,Integer>> metadataQuotas = new ArrayList<HashMap<String,Integer>>();
 		

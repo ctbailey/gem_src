@@ -19,11 +19,12 @@
 
 package gem.ui;
 
-import static gem.AutomatonGlobal.*;
-
-import gem.InvalidConfigurationException;
-import gem.simulation.ICell.CellState;
+import gem.Global;
+import gem.simulation.board.ICell.CellState;
 import gem.talk_to_outside_world.AutomatonSerializable;
+import gem.ui.board_image.AbstractBoardImageSource;
+import gem.ui.board_image.ChainBoardImageSource;
+import gem.ui.board_image.IBoardImageChangedListener;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -37,48 +38,37 @@ import java.util.ArrayList;
 import java.util.List;
  
 
-public class BoardPanel extends JPanel implements AutomatonSerializable, IBoardImageChangedListener {
+public class BoardPanel extends JPanel implements AutomatonSerializable, IBoardImageChangedListener, IBoardPanel, IMenuProvider {
 	static final long serialVersionUID = 6;
-	public enum BoardDisplayConfigurationKey {
-		LinkAgeToAlpha;
-	}
 	
-	public enum MapDisplaySettings { STRETCH_MAP_TO_FIT_BOARD, SCALE_MAP_TO_FILL_BOARD }
 	public enum MouseButton {LEFT, RIGHT, WHEEL, NONE}
 	private static final int BOARD_MIN_SIZE = 100; // The minimum size of the board in "user space"
 	private static final double DEFAULT_ZOOM_IN_SCALE = 1.2;
 	private static final double DEFAULT_ZOOM_OUT_SCALE = 0.8;
 	private static final CellState DEFAULT_USER_SELECTION = CellState.ALIVE;
 	
-	private AbstractBoardImageSource boardDisplayModel;
+	private BoardPanelMouseManager mouseManager;
+	private AbstractBoardImageSource boardImageSource;
 	public BufferedImage map;
 	
-	boolean showMap; // Boolean flag which declares whether to show the map panel
-	private boolean linkAgeToAlpha; 
-	private MapDisplaySettings mapDisplaySettings; // Enum instance
 	private CellState userSelection = DEFAULT_USER_SELECTION; // Used to determine what cell to place when the user clicks/drags on the board
 	
 	// Event fields
 	private List<IBoardInteractionListener> boardInteractionListeners = new ArrayList<IBoardInteractionListener>();
 	private List<IUserCellTypeSelectionChangedListener> userCellTypeSelectionChangedListeners = new ArrayList<IUserCellTypeSelectionChangedListener>();
+	private List<IMouseMovedIntoNewCellListener> mouseMovedIntoNewCellListeners = new ArrayList<IMouseMovedIntoNewCellListener>();
 	
 	public BoardPanel() {
 		super();
 		
-		// Initially, the map image isn't being shown
-		showMap = false;
+		setBoardImageSource(ChainBoardImageSource.getDefault());
+		boardImageSource.addBoardImageChangedListener(this);
 		
-		// The program defaults to stretching the map to fit the board
-		mapDisplaySettings = MapDisplaySettings.STRETCH_MAP_TO_FIT_BOARD;
+		mouseManager = new BoardPanelMouseManager();
 		
-		setBoardImageSource(new BinaryBoardImageSource());
-		boardDisplayModel.addBoardImageChangedListener(this);
-		
-		BoardMouseListener listener = new BoardMouseListener();
-		
-		this.addMouseListener(listener);
-		this.addMouseMotionListener(listener);
-		this.addBoardInteractionListener(automaton.getBoard());
+		this.addMouseListener(mouseManager);
+		this.addMouseMotionListener(mouseManager);
+		this.addBoardInteractionListener(Global.simulator.getBoard());
 		
 		this.setToolTipText("");
 		
@@ -90,21 +80,21 @@ public class BoardPanel extends JPanel implements AutomatonSerializable, IBoardI
 		int cellX = (int) (	Math.floor(ev.getX()/cellWidth())	); // do some arithmetic to translate the mouse's location 
 		int cellY = (int) ( Math.floor(ev.getY()/cellHeight())	); // on the board to an address in the displayArray
 		
-		if((geography.longitudeArray != null)
-				&& (geography.latitudeArray != null)) {
+		if((Global.geography.longitudeArray != null)
+				&& (Global.geography.latitudeArray != null)) {
 			
-			sb.append("Longitude: " + geography.longitudeArray[cellX][cellY] + "<br>");
-			sb.append("Latitude: " + geography.latitudeArray[cellX][cellY] + "<br>");
+			sb.append("Longitude: " + Global.geography.longitudeArray[cellX][cellY] + "<br>");
+			sb.append("Latitude: " + Global.geography.latitudeArray[cellX][cellY] + "<br>");
 			
 		}
-		if(metadata.metadataArray !=null) {
+		if(Global.metadata.metadataArray !=null) {
 			Point toolTipPoint = new Point(cellX, cellY);
-			if(metadata.inferredMetadataPoints.contains(toolTipPoint)) {
+			if(Global.metadata.inferredMetadataPoints.contains(toolTipPoint)) {
 				sb.append("INFERRED <br>");
 			}
-			for(int i = 0; i < metadata.categoryIdentifiers.length; i++) {
-				sb.append(metadata.categoryIdentifiers[i] + ": ");
-				sb.append(metadata.metadataArray[cellX][cellY][i] + "<br>"); // <br> is analogous to \n; creates a new line
+			for(int i = 0; i < Global.metadata.categoryIdentifiers.length; i++) {
+				sb.append(Global.metadata.categoryIdentifiers[i] + ": ");
+				sb.append(Global.metadata.metadataArray[cellX][cellY][i] + "<br>"); // <br> is analogous to \n; creates a new line
 			}
 		}
 		sb.append("X: " + cellX + "<br>");
@@ -112,89 +102,63 @@ public class BoardPanel extends JPanel implements AutomatonSerializable, IBoardI
 		return sb.toString();
 	}
 	
+	@Override
 	public void refreshBoardImage() {
 		repaint();
 	}
 	
+	@Override
 	public void boardImageChanged(Image newBoardImage) {
 		repaint();
 	}
 	public void paint(Graphics g) {		
 		Graphics2D g2d = (Graphics2D) g;
-		tryDrawMap(g2d);
-		g2d.drawImage(boardDisplayModel.getCurrentBoardImage(),0,0,this.getWidth(),this.getHeight(), null); // draw the board
-	}
-	private void tryDrawMap(Graphics2D g2d) {
-		// TODO: Refactor
-		if(	showMap &&
-			(map != null) ) {
-			
-			switch(mapDisplaySettings) {
-			
-				case STRETCH_MAP_TO_FIT_BOARD:
-					// Draw the map
-					g2d.drawImage(map, // the image to draw
-						0,0,this.getWidth(),this.getHeight(), // the dimensions of the image (draw the image so it is as wide and tall as the boardPanel)
-						null); // the image observer
-					break;
-					
-				case SCALE_MAP_TO_FILL_BOARD:
-					// Calculate the appropriate scale
-						double xScale = (double) this.getWidth()/map.getWidth();
-						double yScale = (double) this.getHeight()/map.getHeight();
-						double scale = Math.max(xScale,yScale);
-						
-						int mapWidth = (int) (map.getWidth()*scale);
-						int mapHeight = (int) (map.getHeight()*scale);
-						int x = (this.getWidth() - mapWidth)/2;
-						int y = (this.getHeight() - mapHeight)/2;
-					
-					// Draw the map
-					g2d.drawImage(map,
-						x,y, // points of origin
-						mapWidth, mapHeight, // dimensions of the image
-						null); // the image observer
-					break;	
-			}
-		}
+		g2d.clearRect(0, 0, this.getWidth(), this.getHeight());
+		g2d.drawImage(boardImageSource.getCurrentBoardImage(),0,0,this.getWidth(),this.getHeight(), null); // draw the board
 	}
 	
+	@Override
 	public CellState getUserCellTypeSelection() {
 		return userSelection;
 	}
+	@Override
 	public void setUserCellTypeSelection(CellState state) {
 		userSelection = state;
 		notifyUserCellTypeSelectionChangedListeners(state);
 	}
 	private double cellWidth() {
-		double cellWidth = (double) this.getWidth() / (double)automaton.getBoard().getCurrentState().getWidth(); // assumes a rectangular world array
+		double cellWidth = (double) this.getWidth() / (double)Global.simulator.getBoard().getCurrentState().getWidth(); // assumes a rectangular world array
 		return cellWidth;
 	}
 	private double cellHeight() {
-		double cellHeight = (double) this.getHeight()/ (double)automaton.getBoard().getCurrentState().getHeight();		
+		double cellHeight = (double) this.getHeight()/ (double)Global.simulator.getBoard().getCurrentState().getHeight();		
 		return cellHeight;
 	}
 	
-	public IBoardImageSource getBoardImageSource() {
-		return boardDisplayModel;
+	@Override
+	public AbstractBoardImageSource getBoardImageSource() {
+		return boardImageSource;
 	}
+	@Override
 	public void setBoardImageSource(AbstractBoardImageSource newImageSource) {
-		if(boardDisplayModel != null) {
-			boardDisplayModel.isBeingReplacedBy(newImageSource);
+		if(boardImageSource != null) {
+			boardImageSource.isBeingReplacedBy(newImageSource);
 		}
-		newImageSource.isReplacing(boardDisplayModel);
-		boardDisplayModel = newImageSource;
+		newImageSource.isReplacing(boardImageSource);
+		boardImageSource = newImageSource;
 	}
-	
+	@Override
 	public void zoomIn() {
 		zoom(DEFAULT_ZOOM_IN_SCALE);
 	}
+	@Override
 	public void zoomOut() {
 		zoom(DEFAULT_ZOOM_OUT_SCALE);
 	}
+	@Override
 	public void zoom(double scale) {
 		Dimension current = getPreferredSize();
-		double aspectRatio = (double) automaton.getBoard().getCurrentState().getWidth()/automaton.getBoard().getCurrentState().getHeight();
+		double aspectRatio = (double) Global.simulator.getBoard().getCurrentState().getWidth()/Global.simulator.getBoard().getCurrentState().getHeight();
 		int newWidth = (int) Math.round(current.getWidth()*scale);
 		int newHeight = (int) Math.round(newWidth/aspectRatio);
 		
@@ -206,9 +170,10 @@ public class BoardPanel extends JPanel implements AutomatonSerializable, IBoardI
 			revalidate();
 		}
 	}
+	@Override
 	public void zoomToFit() {
-		int scrollPaneWidth = userInterface.boardScrollPane.getWidth();
-		int scrollPaneHeight = userInterface.boardScrollPane.getHeight();
+		int scrollPaneWidth = Global.userInterface.boardScrollPane.getWidth();
+		int scrollPaneHeight = Global.userInterface.boardScrollPane.getHeight();
 					
 		int boardWidth = getWidth();
 		int boardHeight = getHeight();
@@ -220,36 +185,9 @@ public class BoardPanel extends JPanel implements AutomatonSerializable, IBoardI
 					
 		zoom(scale*0.9);
 	}
-	
-	public void setMapDisplaySettings(MapDisplaySettings setting) {
-		mapDisplaySettings = setting;
-		refreshBoardImage();
-	}	
-	public boolean getValueForConfigurationKey(BoardDisplayConfigurationKey key) {
-		return linkAgeToAlpha;
-	}
-	public void setValueForConfigurationKey(BoardDisplayConfigurationKey key, boolean value) 
-		throws InvalidConfigurationException {
-		switch(key) {
-			case LinkAgeToAlpha:
-				setLinkAgeToAlpha(value);
-				break;
-			default:
-				throw new InvalidConfigurationException("Unrecognized configuration key: " + key);
-			
-		}
-	}
-	private void setLinkAgeToAlpha(boolean value) {
-		if(value && !linkAgeToAlpha) {
-			try {
-				LinkAgeToAlphaBoardImageSource newImageSource = LinkAgeToAlphaBoardImageSource.createInstanceFromUserInput();
-				setBoardImageSource(newImageSource);
-			} catch(UserDidNotConfirmException ex) {
-				// Do nothing
-			}
-		} else {
-			setBoardImageSource(new BinaryBoardImageSource());
-		}
+
+	public Point getCellLocationMouseIsOver() {
+		return mouseManager.getCellLocationMouseIsOver();
 	}
 	
 	private boolean isPointOnBoard(int x, int y) {
@@ -264,41 +202,295 @@ public class BoardPanel extends JPanel implements AutomatonSerializable, IBoardI
 		return new Point(cellX, cellY);
 	}
 	
+	// Mouse manager
+	private class BoardPanelMouseManager implements MouseListener, MouseMotionListener {
+		// Keeps up-to-date information about the state of the mouse relative to
+		// the board. Serves as a central resource for several inner classes
+		// (e.g., BoardInteractionNotifier) which all use that information.
+		
+		private MouseButton currentButtonPressed;
+		private Point currentCell = new Point(-1,-1);
+		private List<MouseListener> mouseListeners;
+		private List<MouseMotionListener> mouseMotionListeners;
+		
+		BoardPanelMouseManager() {
+			mouseListeners = new ArrayList<MouseListener>();
+			mouseMotionListeners = new ArrayList<MouseMotionListener>();
+			
+			BoardInteractionNotifier boardInteractionNotifier = new BoardInteractionNotifier();
+			mouseListeners.add(boardInteractionNotifier);
+			mouseMotionListeners.add(boardInteractionNotifier);
+			
+			Scroller scroller = new Scroller(Global.userInterface.boardViewport, Global.userInterface.boardPanel);
+			mouseListeners.add(scroller);
+			mouseMotionListeners.add(scroller);
+			
+			MouseMovedIntoNewCellNotifier mouseMovedIntoNewCellNotifier = new MouseMovedIntoNewCellNotifier();
+			//TODO: Figure out a way to do this so it doesn't throw a null reference exception.  Global.userInterface.mouseLeftBoardNotifier.addMouseLeftBoardListener(mouseMovedIntoNewCellNotifier);
+			mouseMotionListeners.add(mouseMovedIntoNewCellNotifier);
+		}
+		
+		public Point getCellLocationMouseIsOver() {
+			return new Point(currentCell.x, currentCell.y);
+		}
+		
+		@Override
+		public void mousePressed(MouseEvent e) {
+			currentCell = getCellLocation(e.getX(), e.getY());
+			
+			switch(e.getButton()) { 
+				case MouseEvent.BUTTON1: // if the left mouse button was clicked
+					currentButtonPressed = MouseButton.LEFT;
+					break;
+				case MouseEvent.BUTTON3: // but if the right mouse button was clicked
+					currentButtonPressed = MouseButton.RIGHT;
+					break;
+				default: // if the user clicked neither with the left or right buttons
+					currentButtonPressed = MouseButton.WHEEL;
+					break;
+			}
+			notifyMousePressedListeners(e);
+		}
+		@Override
+		public void mouseReleased(MouseEvent e){
+			currentButtonPressed = MouseButton.NONE;
+			notifyMouseReleasedListeners(e);
+		}
+		@Override
+		public void mouseDragged(MouseEvent e) {
+			currentCell = getCellLocation(e.getX(), e.getY());
+			notifyMouseDraggedListeners(e);
+		}
+		
+		@Override
+		public void mouseMoved(MouseEvent e) {
+			currentCell = getCellLocation(e.getX(), e.getY());
+			notifyMouseMovedListeners(e);
+		}
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			notifyMouseClickedListeners(e);
+		}
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			notifyMouseEnteredListeners(e);
+		}
+		@Override
+		public void mouseExited(MouseEvent e) {
+			notifyMouseExitedListeners(e);
+		}
+		
+		private void notifyMousePressedListeners(MouseEvent e) {
+			for(MouseListener listener : mouseListeners) {
+				listener.mousePressed(e);
+			}
+		}
+		private void notifyMouseReleasedListeners(MouseEvent e) {
+			for(MouseListener listener : mouseListeners) {
+				listener.mouseReleased(e);
+			}
+		}
+		private void notifyMouseDraggedListeners(MouseEvent e) {
+			for(MouseMotionListener listener : mouseMotionListeners) {
+				listener.mouseDragged(e);
+			}
+		}
+		private void notifyMouseMovedListeners(MouseEvent e) {
+			for(MouseMotionListener listener : mouseMotionListeners) {
+				listener.mouseMoved(e);
+			}
+		}
+		private void notifyMouseClickedListeners(MouseEvent e) {
+			for(MouseListener listener : mouseListeners) {
+				listener.mouseClicked(e);
+			}
+		}
+		private void notifyMouseEnteredListeners(MouseEvent e) {
+			for(MouseListener listener : mouseListeners) {
+				listener.mouseEntered(e);
+			}
+		}
+		private void notifyMouseExitedListeners(MouseEvent e) {
+			for(MouseListener listener : mouseListeners) {
+				listener.mouseExited(e);
+			}
+		}
+		
+		// Inner classes
+		private class BoardInteractionNotifier implements MouseListener, MouseMotionListener {
+			private Point previousCell = new Point(-1, -1);
+			
+			@Override
+			public void mousePressed(MouseEvent e) {
+				previousCell.setLocation(currentCell);
+				notifyBoardInteractionListeners(userSelection, currentButtonPressed, currentCell.x, currentCell.y);
+			}
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				if(shouldReportDragInteraction(currentCell, e.getX(), e.getY())) {
+					previousCell.setLocation(currentCell);
+					notifyBoardInteractionListeners(userSelection, currentButtonPressed, currentCell.x, currentCell.y);
+				}
+			}
+			
+			private boolean mouseEnteredNewCell() {
+				return ((previousCell.x != currentCell.getX()) 
+						|| (previousCell.y != currentCell.getY()));
+			}
+			private boolean shouldReportDragInteraction(Point cellLocation, int mouseX, int mouseY) {
+				return (mouseEnteredNewCell()
+						&& isPointOnBoard(mouseX, mouseY)
+						&& (currentButtonPressed != MouseButton.NONE));
+			}
+			
+			public void mouseReleased(MouseEvent e){}
+			public void mouseEntered(MouseEvent e){}
+			public void mouseExited(MouseEvent e){}
+			public void mouseClicked(MouseEvent e){}
+			public void mouseMoved(MouseEvent e){}
+		}
+		private class Scroller implements MouseListener, MouseMotionListener {
+			private Point oldMousePosition = new Point(0,0);
+			private MouseButton scrollButton;
+			private JViewport viewport;
+			private JComponent componentToScroll;
+			
+			public Scroller(JViewport viewport, JComponent componentToScroll) {
+				this(MouseButton.WHEEL, viewport, componentToScroll);
+			}
+			public Scroller(MouseButton scrollButton, JViewport viewport, JComponent componentToScroll) {
+				this.scrollButton = scrollButton;
+				this.viewport = viewport;
+				this.componentToScroll = componentToScroll;
+			}
+			
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if(currentButtonPressed == scrollButton) { 
+					oldMousePosition.setLocation(e.getX(), e.getY());
+				}
+			}
+			public void mouseDragged(MouseEvent e) {
+				if(shouldScroll(e.getX(), e.getY())) { 
+					dragScroll(e.getX(), e.getY());
+				}
+			}
+			private void dragScroll(int mouseX, int mouseY) {
+				// Calculate how much to change the view
+				int xDif = (int) oldMousePosition.x - mouseX;
+				int yDif = (int) oldMousePosition.y - mouseY;
+				int newX = viewport.getViewPosition().x + xDif;
+				int newY = viewport.getViewPosition().y + yDif;
+				
+				Point newViewPosition = new Point(viewport.getViewPosition().x, viewport.getViewPosition().y);
+				
+				if( (0 < newX) // If there's some board panel out of view in the x-direction
+					&& ((newX + viewport.getWidth()) < componentToScroll.getWidth())) {
+					newViewPosition.x = newX;
+				}
+				if( (0 < newY) // If there's some board panel out of view in the y-direction
+					&& ((newY + viewport.getHeight()) < componentToScroll.getHeight())
+					) {
+					newViewPosition.y = newY;
+				}
+				viewport.setViewPosition(newViewPosition);
+				componentToScroll.revalidate();
+				oldMousePosition.setLocation(mouseX, mouseY);
+			}
+			
+			private boolean shouldScroll(int mouseX, int mouseY) {
+				return (currentButtonPressed == scrollButton)
+						&& isPointOnBoard(mouseX, mouseY); // TODO: Put this in a subclass?
+			}
+			
+			public void mouseReleased(MouseEvent e){}
+			public void mouseEntered(MouseEvent e){}
+			public void mouseExited(MouseEvent e){}
+			public void mouseClicked(MouseEvent e){}
+			public void mouseMoved(MouseEvent e){}
+			
+		}
+		private class MouseMovedIntoNewCellNotifier implements MouseMotionListener, IMouseLeftBoardListener {
+			private Point previousCell = new Point(-1, -1);
+			
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				tryNotifyListeners();
+			}
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				tryNotifyListeners();
+			}
+			private boolean tryNotifyListeners() {
+				boolean mouseEnteredNewCell = mouseEnteredNewCell();
+				if(mouseEnteredNewCell) {
+					previousCell.setLocation(currentCell);
+					notifyMouseMovedIntoNewCellListeners(currentCell.x, currentCell.y);
+				}
+				return mouseEnteredNewCell;
+			}
+			private boolean mouseEnteredNewCell() {
+				return (previousCell == null)
+						|| (previousCell.x != currentCell.x)
+						|| (previousCell.y != currentCell.y);
+			}
+			@Override
+			public void mouseLeftBoard() {
+				previousCell = null;
+			}
+		}
+		
+	}
+	
 	// Event methods
+	@Override
 	public void addBoardInteractionListener(IBoardInteractionListener listener) {
 		boardInteractionListeners.add(listener);
 	}
-	public void addUserCellTypeSelectionChangedListener(IUserCellTypeSelectionChangedListener listener) {
-		userCellTypeSelectionChangedListeners.add(listener);
-	}
-	
+	@Override
 	public void removeBoardInteractionListener(IBoardInteractionListener listener) {
 		boardInteractionListeners.remove(listener);
 	}
-	public void removeUserCellTypeSelectionChangedListener(IUserCellTypeSelectionChangedListener listener) {
-		userCellTypeSelectionChangedListeners.remove(listener);
-	}
-	
 	private void notifyBoardInteractionListeners(CellState currentlySelectedByUser, MouseButton buttonPressed, int cellX, int cellY) {
 		for(IBoardInteractionListener listener : boardInteractionListeners) {
 			listener.userInteracted(currentlySelectedByUser, buttonPressed, cellX, cellY);
 		}
+	}
+	
+	@Override
+	public void addUserCellTypeSelectionChangedListener(IUserCellTypeSelectionChangedListener listener) {
+		userCellTypeSelectionChangedListeners.add(listener);
+	}
+	@Override
+	public void removeUserCellTypeSelectionChangedListener(IUserCellTypeSelectionChangedListener listener) {
+		userCellTypeSelectionChangedListeners.remove(listener);
 	}
 	private void notifyUserCellTypeSelectionChangedListeners(CellState newSelection) {
 		for(IUserCellTypeSelectionChangedListener listener : userCellTypeSelectionChangedListeners) {
 			listener.userCellTypeSelectionChanged(newSelection);
 		}
 	}
+
+	public void addMouseMovedIntoNewCellListener(IMouseMovedIntoNewCellListener listener) {
+		mouseMovedIntoNewCellListeners.add(listener);
+	}
+	public void removeMouseMovedIntoNewCellListener(IMouseMovedIntoNewCellListener listener) {
+		mouseMovedIntoNewCellListeners.remove(listener);
+	}
+	private void notifyMouseMovedIntoNewCellListeners(int cellX, int cellY) {
+		for(IMouseMovedIntoNewCellListener listener : mouseMovedIntoNewCellListeners) {
+			listener.mouseMovedIntoNewCell(cellX, cellY);
+		}
+	}
 	
+	// Save and load methods
 	public void save(ObjectOutputStream output) {
 		
-		Object[] savedBoardPanel = new Object[4];
+		Object[] savedBoardPanel = new Object[2];
 		
-		savedBoardPanel[0] = boardDisplayModel;
+		savedBoardPanel[0] = boardImageSource;
 		savedBoardPanel[1] = getPreferredSize();
-		
-		savedBoardPanel[2] = new Boolean(showMap);
-		
+				
 		try {
 			
 			if(map != null) {
@@ -325,7 +517,6 @@ public class BoardPanel extends JPanel implements AutomatonSerializable, IBoardI
 			AbstractBoardImageSource loadedDisplayBoard = (AbstractBoardImageSource) loadedBoardPanel[0];
 			Dimension loadedPreferredSize = (Dimension) loadedBoardPanel[1];
 			
-			Boolean loadedShowMap = (Boolean) loadedBoardPanel[2];
 			Boolean readImage = (Boolean) loadedBoardPanel[3];
 			
 			BufferedImage loadedMap = null;
@@ -337,12 +528,8 @@ public class BoardPanel extends JPanel implements AutomatonSerializable, IBoardI
 			setBoardImageSource(loadedDisplayBoard);
 			setPreferredSize(loadedPreferredSize);
 			
-			showMap = loadedShowMap.booleanValue();
-			
 			if(loadedMap != null) {
-				
 				map = loadedMap;
-				
 			}
 			revalidate();
 		} catch(Exception ex) {
@@ -350,85 +537,17 @@ public class BoardPanel extends JPanel implements AutomatonSerializable, IBoardI
 		}
 		
 	}
+
 	
-	class BoardMouseListener implements MouseListener, MouseMotionListener {
-		private Point currentCell = new Point(-1,-1);
-		private Point oldMousePosition = new Point(0,0);
-		private MouseButton currentButtonPressed;
-		
-		@Override
-		public void mousePressed(MouseEvent e) {
-			int cellX = (int) (	Math.floor(e.getX()/cellWidth())	); // do some arithmetic to translate the mouse's location 
-			int cellY = (int) ( Math.floor(e.getY()/cellHeight())	); // on the board to an address in the displayArray
-			
-			switch(e.getButton()) { // if the left mouse button was clicked
-				case MouseEvent.BUTTON1:
-					currentButtonPressed = MouseButton.LEFT;
-					break;
-				case MouseEvent.BUTTON3: // but if the right mouse button was clicked
-					currentButtonPressed = MouseButton.RIGHT;
-					break;
-				default: // if the user clicked neither with the left or right buttons, assume they wanted to scroll
-					currentButtonPressed = MouseButton.WHEEL;
-					oldMousePosition.setLocation(e.getX(), e.getY());
-					currentCell.setLocation(-1,-1);
-					break;
-			}
-			notifyBoardInteractionListeners(userSelection, currentButtonPressed, cellX, cellY);
+	// UI methods
+	@Override
+	public JMenu getJMenu() {
+		JMenu viewMenu = new JMenu("View");
+		List<JMenuItem> bisMenuItems = getBoardImageSource().getMenuItems();
+		for(JMenuItem menuItem : bisMenuItems) {
+			viewMenu.add(menuItem);
 		}
-		public void mouseDragged(MouseEvent e) {
-			Point cellLocation = getCellLocation(e.getX(), e.getY());
-			if(shouldReportDragInteraction(cellLocation, e.getX(), e.getY())) { 
-				if(currentButtonPressed == MouseButton.LEFT || currentButtonPressed == MouseButton.RIGHT) {
-					currentCell.setLocation(cellLocation.x, cellLocation.y);
-				} else if(currentButtonPressed == MouseButton.WHEEL) {
-					dragScroll(e.getX(), e.getY());
-				}
-				notifyBoardInteractionListeners(userSelection, currentButtonPressed, cellLocation.x, cellLocation.y);
-			}
-		}
-		private void dragScroll(int mouseX, int mouseY) {
-			// Calculate how much to change the view
-			int xDif = (int) oldMousePosition.x - mouseX;
-			int yDif = (int) oldMousePosition.y - mouseY;
-			int newX = userInterface.boardViewport.getViewPosition().x + xDif;
-			int newY = userInterface.boardViewport.getViewPosition().y + yDif;
-			
-			Point newViewPosition = new Point(userInterface.boardViewport.getViewPosition().x, userInterface.boardViewport.getViewPosition().y);
-			
-			if( ( 0 < newX ) // If there's some board panel out of view in the x-direction
-					&& ((newX + userInterface.boardViewport.getWidth()) < getWidth())) {
-				newViewPosition.x = newX;
-			}
-			if( (0 < newY ) // If there's some board panel out of view in the y-direction
-					&& ((newY + userInterface.boardViewport.getHeight()) < getHeight())
-				) {
-				newViewPosition.y = newY;
-			}
-			userInterface.boardViewport.setViewPosition(newViewPosition);
-			revalidate();
-			oldMousePosition.setLocation(mouseX, mouseY);
-			// TODO: Does oldMousePosition need to be updated here?
-		}
-		
-		@Override
-		public void mouseReleased(MouseEvent e){
-			currentButtonPressed = MouseButton.NONE;
-		}
-		
-		private boolean hasInteractionWithCellBeenReported(int x, int y) {
-			return ((x == currentCell.getX()) 
-					&& (y == currentCell.getY()));
-		}
-		private boolean shouldReportDragInteraction(Point cellLocation, int mouseX, int mouseY) {
-			return (!hasInteractionWithCellBeenReported(cellLocation.x, cellLocation.y)
-					&& isPointOnBoard(mouseX, mouseY)
-					&& (currentButtonPressed != MouseButton.NONE));
-		}
-		
-		public void mouseEntered(MouseEvent e){}
-		public void mouseExited(MouseEvent e){}
-		public void mouseClicked(MouseEvent e){}
-		public void mouseMoved(MouseEvent e){}
+		return viewMenu;
 	}
+
 }

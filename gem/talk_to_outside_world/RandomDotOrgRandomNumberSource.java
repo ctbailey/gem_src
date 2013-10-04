@@ -19,8 +19,8 @@
 
 package gem.talk_to_outside_world;
 
-import gem.simulation.IRandomNumberSource;
-import gem.simulation.NoRandomNumbersRemainingException;
+import gem.simulation.randomization.IRandomNumberSource;
+import gem.simulation.randomization.NoRandomNumbersRemainingException;
 
 import java.net.*;
 import java.io.*;

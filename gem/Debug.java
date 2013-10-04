@@ -19,31 +19,50 @@
 
 package gem;
 
-import static gem.AutomatonGlobal.*;
+import static gem.Global.*;
 
 public class Debug {
 	static final long serialVersionUID = 6;
 	
 	public static void printLine(String string) {
-		if(userInterface.showDebugArea) {
-			userInterface.debugArea.append(string + "\n");
-		}
+		safePrint(string + "\n");
 	}
 	public static void newLine() {
-		if(userInterface.showDebugArea) {
-			userInterface.debugArea.append("\n");
-		}
+		safePrint("\n");
 	}
-	public static void print2dArrayElements(double[][] array) {
-		if(userInterface.showDebugArea) {
+	public static <T> void print(T[][] array) {
+		newLine();
+		for(int i = 0; i < array.length; i++) {
 			newLine();
-			for(int i = 0; i < array.length; i++) {
-				newLine();
-				for(int j = 0; j < array[i].length; j++) {
-					userInterface.debugArea.append(" " + array[i][j] + " ");
-				}
+			for(int j = 0; j < array[i].length; j++) {
+				safePrint(" " + array[i][j] + " ");
 			}
-			newLine();
+		}
+		newLine();
+	}
+	public static void print(int[][] array) {
+		Integer[][] newArray = new Integer[array.length][array[0].length];
+		for(int i = 0; i < array.length; i++) {
+			for(int j = 0; j < array[i].length; j++) {
+				newArray[i][j] = array[i][j];
+			}
+		}
+		print(newArray);
+	}
+	public static void print(double[][] array) {
+		Double[][] newArray = new Double[array.length][array[0].length];
+		for(int i = 0; i < array.length; i++) {
+			for(int j = 0; j < array[i].length; j++) {
+				newArray[i][j] = array[i][j];
+			}
+		}
+		print(newArray);
+	}
+	private static void safePrint(String string) {
+		if(userInterface.debugArea != null) {
+			userInterface.debugArea.append(string);
+		} else {
+			System.out.print(string);
 		}
 	}
 		

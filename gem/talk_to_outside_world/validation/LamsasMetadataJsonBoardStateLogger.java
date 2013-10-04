@@ -19,21 +19,20 @@
 
 package gem.talk_to_outside_world.validation;
 
-import gem.AutomatonGlobal;
-import gem.simulation.*;
+import gem.simulation.board.IBoardWillIterateListener;
+import gem.simulation.state.ConwayState;
+import gem.simulation.state.IState;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 
-import com.google.gson.Gson;
+//import com.google.gson.Gson;
 
 public class LamsasMetadataJsonBoardStateLogger implements IBoardWillIterateListener {
-	private BufferedWriter out;
-	private Gson gson = new Gson();
+	//private BufferedWriter out;
+	//private Gson gson = new Gson();
 	
 	public LamsasMetadataJsonBoardStateLogger(File targetFile) {
 		/*
