@@ -56,7 +56,11 @@ public class BoardPanel extends AbstractBoardPanel {
 	public BoardPanel() {
 		super();
 		
-		setBoardImageSource(ChainBoardImageSource.getDefault());
+		cellChangeActionNotifier = new CellChangeActionNotifier();
+		this.addBoardInteractionListener(cellChangeActionNotifier);
+		cellChangeActionNotifier.addCellChangeActionListener(Global.simulator.getBoard());
+		
+		setBoardImageSource(ChainBoardImageSource.getDefault(this));
 		boardImageSource.addBoardImageChangedListener(this);
 		
 		mouseManager = new BoardPanelMouseManager();
@@ -64,9 +68,7 @@ public class BoardPanel extends AbstractBoardPanel {
 		this.addMouseListener(mouseManager);
 		this.addMouseMotionListener(mouseManager);
 		
-		cellChangeActionNotifier = new CellChangeActionNotifier();
-		this.addBoardInteractionListener(cellChangeActionNotifier);
-		cellChangeActionNotifier.addCellChangeActionListener(Global.simulator.getBoard());
+		
 		
 		this.setToolTipText("");
 		

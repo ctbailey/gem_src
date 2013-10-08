@@ -704,7 +704,6 @@ public class MapWizard {
 			 * 
 			 */
 			
-			@SuppressWarnings("unused")
 			int index = 0; // Used to find the appropriate index in the dimensional array
 		    int alternator = 0; // Alternates between 0 and 1 (determines cell color)
 		    checkerboardArray = new int[rows*columns]; 

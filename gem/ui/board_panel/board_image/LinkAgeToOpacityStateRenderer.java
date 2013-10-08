@@ -21,11 +21,9 @@ package gem.ui.board_panel.board_image;
 
 import static gem.Global.userInterface;
 
-import java.awt.Image;
-
 import gem.Global;
+import gem.simulation.board.IBoardDidIterateListener;
 import gem.simulation.board.IBoardResetListener;
-import gem.simulation.board.IBoardStateChangedListener;
 import gem.simulation.state.IState;
 import gem.simulation.state.ICell.CellState;
 import gem.ui.UserDidNotConfirmException;
@@ -37,8 +35,7 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
-
-public class LinkAgeToOpacityStateRenderer extends SingleColorCellRenderer implements IBoardStateChangedListener, IBoardResetListener {
+public class LinkAgeToOpacityStateRenderer extends BoardStateChangedRenderer implements IBoardDidIterateListener, IBoardResetListener {
 	private static final int IMPASSABLE_RED = 175;
 	private static final int IMPASSABLE_BLUE = 175;
 	private static final int IMPASSABLE_GREEN = 175;
@@ -60,36 +57,22 @@ public class LinkAgeToOpacityStateRenderer extends SingleColorCellRenderer imple
 	
 	private int[][] cellAges;
 	private int fullOpacityAge; // 255 is opaque
-	private int previousNumberOfIterations = 0;
 	
 	public LinkAgeToOpacityStateRenderer(int fullOpacityAge, float preferredMaximumOpacity) {
 		super(preferredMaximumOpacity);
-		this.previousNumberOfIterations = Global.simulator.getBoard().getNumberOfIterations();
 		this.fullOpacityAge = fullOpacityAge;
 		cellAges = new int[0][0];
-		
-		Global.simulator.getBoard().addBoardStateChangedListener(this);
+		Global.simulator.getBoard().addBoardDidIterateListener(this);
 		Global.simulator.getBoard().addBoardResetListener(this);
 	}
 	
 	@Override
-	public void boardStateChanged(IState newState, int numberOfIterations) {
-		if(boardDidIterate(numberOfIterations)) {
-			updateCellAge(newState);
-		}
-		setLatestImage(renderState(newState));
+	public void boardDidCalculateNewState(IState newState,
+			int updatedNumberOfIterations) {
+		updateCellAge(newState);
 	}
-	private boolean boardDidIterate(int newNumberOfIterations) {
-		if(newNumberOfIterations == previousNumberOfIterations + 1) {
-			previousNumberOfIterations = newNumberOfIterations;
-			return true;
-		} else if(newNumberOfIterations <= previousNumberOfIterations) {
-			previousNumberOfIterations = newNumberOfIterations;
-			return false;
-		} else {
-			throw new RuntimeException("Something unexpected happened - the automaton skipped ahead more than one iteration.");
-		}
-	}
+	
+	@Override
 	public void boardWasReset() {
 		resetCellAges();
 	}
@@ -102,58 +85,34 @@ public class LinkAgeToOpacityStateRenderer extends SingleColorCellRenderer imple
 	}
 	
 	public void wasMadeSpurious(IStateRenderer replacement) {
-		Global.simulator.getBoard().removeBoardStateChangedListener(this);
+		super.wasMadeSpurious(replacement);
+		Global.simulator.getBoard().removeBoardDidIterateListener(this);
 		Global.simulator.getBoard().removeBoardResetListener(this);
 	}
-	
 	@Override
-	public void refreshImage() {
-		setLatestImage(renderState(Global.simulator.getBoard().getCurrentState()));
-	}
-	
-	
-	private Image renderState(IState newState) {
-		int[] pixels = calculatePixels(newState, getPreferredOpacity());
-		return createImageFromPixels(pixels, newState.getWidth(), newState.getHeight());
-	}
-	private int[] calculatePixels(IState newState, float normalizedMaximumOpacity) {
-		int index = 0;
-		int[] imageArray = new int[newState.getNumberOfCells()];
-		
-		try {
-			for(int y = 0; y < newState.getHeight(); y++) {
-				for(int x = 0; x < newState.getWidth(); x++) {
-					int opacity = calculateOpacityForCell(x,y, newState.getCell(x, y).getState(), normalizedMaximumOpacity);
-					imageArray[index] = calculatePixelValue(opacity, newState.getCell(x, y).getState());
-					index++;
-				}
-			}
-			return imageArray;
-		} catch(IndexOutOfBoundsException e) {
-			cellAges = new int[newState.getWidth()][newState.getHeight()];
-			return calculatePixels(newState, normalizedMaximumOpacity);
-		}
-	}
-	private int calculatePixelValue(int opacity, CellState cellState) {
-		int pixel;
-		switch(cellState) {
+	protected RGBA getColorAtPoint(IState state, int x, int y,
+			float normalizedMaxOpacity) {
+		int opacity = calculateOpacityForCell(x,y, state.getCell(x, y).getState(), normalizedMaxOpacity);
+		RGBA color;
+		switch(state.getCell(x, y).getState()) {
 			case IMPASSABLE: // if the cell is impassable, set color to grey
-				pixel = (opacity << 24) | (IMPASSABLE_RED << 16) | (IMPASSABLE_GREEN << 8) | (IMPASSABLE_BLUE);
+				color = new RGBA(IMPASSABLE_RED, IMPASSABLE_GREEN, IMPASSABLE_BLUE, opacity);
 				break;
 					
 			case DEAD: // if the cell is off, set color to white
-				pixel = (opacity << 24) | (DEAD_RED << 16) | (DEAD_GREEN << 8) | (DEAD_BLUE);
+				color = new RGBA(DEAD_RED, DEAD_GREEN, DEAD_BLUE, opacity);
 				break;	
 				
 			case ALIVE: // if the cell is on, set color to black
-				pixel = (opacity << 24) | (ALIVE_RED << 16) | (ALIVE_GREEN << 8) | (ALIVE_BLUE);
+				color = new RGBA(ALIVE_RED, ALIVE_GREEN, ALIVE_BLUE, opacity);
 				break;
 				
 			default:
-				pixel = (opacity << 24) | (OTHER_RED << 16) | (OTHER_GREEN << 8) | (OTHER_BLUE);
+				color = new RGBA(OTHER_RED, OTHER_GREEN, OTHER_BLUE, opacity);
 		}
-		return pixel;
+		return color;
 	}
+
 	private int calculateOpacityForCell(int x, int y, CellState state, float normalizedMaximumOpacity) {
 		int opacity;
 		if(state == CellState.ALIVE) {
@@ -202,5 +161,10 @@ public class LinkAgeToOpacityStateRenderer extends SingleColorCellRenderer imple
 		} else {
 			throw new UserDidNotConfirmException();
 		}
+	}
+
+	@Override
+	public boolean makesSpurious(IStateRenderer otherRenderer) {
+		return (otherRenderer instanceof BoardStateChangedRenderer);
 	}
 }

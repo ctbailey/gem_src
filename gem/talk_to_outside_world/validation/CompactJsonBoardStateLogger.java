@@ -21,7 +21,6 @@ package gem.talk_to_outside_world.validation;
 
 import gem.simulation.board.IBoardWillIterateListener;
 import gem.simulation.state.IState;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /*
 import java.io.BufferedWriter;
@@ -35,7 +34,7 @@ public class CompactJsonBoardStateLogger implements IBoardWillIterateListener {
 
 	@Override
 	public void boardWillIterate(IState currentState) {
-		throw new NotImplementedException();
+		throw new RuntimeException("Not implemented.");
 	}
 
 	/*

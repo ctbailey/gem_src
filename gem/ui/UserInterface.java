@@ -121,6 +121,7 @@ public class UserInterface {
 		
 		mainFrame = new JFrame();
 		
+		buildKeyboardListener();
 		buildBoardArea();
 		buildWesternArea();
 		buildMenuArea();
@@ -139,6 +140,10 @@ public class UserInterface {
 		// Make sure the main frame shows up on top of the debug area
 		mainFrame.toFront();
 		boardPanel.getBoardImageSource().refreshBoardImage();
+	}
+	
+	private void buildKeyboardListener() {
+		keyboard = new Keyboard();
 	}
 	
 	// Methods which build individual sections of the UI

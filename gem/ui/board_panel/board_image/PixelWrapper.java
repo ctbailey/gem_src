@@ -1,5 +1,7 @@
 package gem.ui.board_panel.board_image;
 
+import gem.Global;
+
 import java.awt.Component;
 import java.awt.Image;
 import java.awt.image.MemoryImageSource;
@@ -39,9 +41,15 @@ public class PixelWrapper {
 		Image image = imageCreator.createImage(imageProducer);
 		return image;
 	}
+	public Image toImage(Component imageCreator) {
+		return toImage(imageCreator, this.imageWidth, this.imageHeight);
+	}
+	public Image toImage() {
+		return toImage(Global.userInterface.boardPanel);
+	}
 	public static Image blankImage(int imageWidth, int imageHeight, Component imageCreator, int widthInCells, int heightInCells) {
 		return new PixelWrapper(
-				imageWidth, 
+				imageWidth,
 				imageHeight).toImage(imageCreator, widthInCells, heightInCells);
 	}
 }

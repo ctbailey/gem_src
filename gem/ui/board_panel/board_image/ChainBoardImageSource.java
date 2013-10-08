@@ -2,6 +2,7 @@ package gem.ui.board_panel.board_image;
 
 import gem.ui.IMapImageLoadedListener;
 import gem.ui.UserDidNotConfirmException;
+import gem.ui.board_panel.BoardPanel;
 import gem.ui.board_panel.board_image.ImageRenderer.ImageDisplaySettings;
 
 import java.awt.Graphics;
@@ -187,9 +188,10 @@ public class ChainBoardImageSource extends AbstractBoardImageSource implements I
 		return copy;
 	}
 	
-	public static ChainBoardImageSource getDefault() {
+	public static ChainBoardImageSource getDefault(BoardPanel boardPanel) {
 		ChainBoardImageSource defaultImageSource = new ChainBoardImageSource();
 		defaultImageSource.addBoardStateRenderer(new BinaryStateRenderer(1.0f));
+		defaultImageSource.addBoardStateRenderer(new SelectedCellColorer(0.5f, boardPanel));
 		return defaultImageSource;
 	}
 	

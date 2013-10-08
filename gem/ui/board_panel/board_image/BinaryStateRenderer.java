@@ -19,14 +19,9 @@
 
 package gem.ui.board_panel.board_image;
 
-import java.awt.Image;
-
-import gem.Global;
-import gem.simulation.board.IBoardStateChangedListener;
 import gem.simulation.state.IState;
-import gem.simulation.state.ICell.CellState;
 
-public class BinaryStateRenderer extends SingleColorCellRenderer implements IBoardStateChangedListener {
+public class BinaryStateRenderer extends BoardStateChangedRenderer {
 	private static final int IMPASSABLE_RED = 175;
 	private static final int IMPASSABLE_BLUE = 175;
 	private static final int IMPASSABLE_GREEN = 175;
@@ -45,57 +40,33 @@ public class BinaryStateRenderer extends SingleColorCellRenderer implements IBoa
 	
 	public BinaryStateRenderer(float preferredOpacity) {
 		super(preferredOpacity);
-		Global.simulator.getBoard().addBoardStateChangedListener(this);
 	}
 
 	@Override
-	public void boardStateChanged(IState newState, int newNumberOfIterations) {
-		setLatestImage(renderState(newState));
+	public boolean makesSpurious(IStateRenderer otherRenderer) {
+		return (otherRenderer instanceof BoardStateChangedRenderer);
 	}
+
 	@Override
-	public void refreshImage() {
-		setLatestImage(renderState(Global.simulator.getBoard().getCurrentState()));
-	}
-	public void wasMadeSpurious(IStateRenderer replacement) {
-		Global.simulator.getBoard().removeBoardStateChangedListener(this);
-	}
-	
-	private Image renderState(IState newState) {
-		int[] pixels = calculatePixels(newState, getPreferredOpacity());
-		return createImageFromPixels(pixels, newState.getWidth(), newState.getHeight());
-	}
-	private int[] calculatePixels(IState newState, float preferredOpacity) {
-		int index = 0;
-		
-		int[] imageArray = new int[newState.getNumberOfCells()];
-		int opacity = (int)(preferredOpacity * 255.0f); // opaque when normalizedOpacity = 1
-		
-		for(int y = 0; y < newState.getHeight(); y++) {
-			for(int x = 0; x < newState.getWidth(); x++) {
-				imageArray[index] = calculatePixelValue(opacity, newState.getCell(x, y).getState());
-				index++;
-			}
-		}
-		return imageArray;
-	}
-	private int calculatePixelValue(int opacity, CellState cellState) {
-		int pixel;
-		switch(cellState) {
+	protected RGBA getColorAtPoint(IState state, int x, int y,
+			float preferredOpacity) {
+		RGBA color;
+		switch(state.getCell(x, y).getState()) {
 			case IMPASSABLE: // if the cell is impassable, set color to grey
-				pixel = (opacity << 24) | (IMPASSABLE_RED << 16) | (IMPASSABLE_GREEN << 8) | (IMPASSABLE_BLUE);
+				color = new RGBA(IMPASSABLE_RED, IMPASSABLE_GREEN, IMPASSABLE_BLUE, preferredOpacity);
 				break;
 					
 			case DEAD: // if the cell is off, set color to white
-				pixel = (opacity << 24) | (DEAD_RED << 16) | (DEAD_GREEN << 8) | (DEAD_BLUE);
+				color = new RGBA(DEAD_RED, DEAD_GREEN, DEAD_BLUE, preferredOpacity);
 				break;	
 				
 			case ALIVE: // if the cell is on, set color to black
-				pixel = (opacity << 24) | (ALIVE_RED << 16) | (ALIVE_GREEN << 8) | (ALIVE_BLUE);
+				color = new RGBA(ALIVE_RED, ALIVE_GREEN, ALIVE_BLUE, preferredOpacity);
 				break;
 				
 			default:
-				pixel = (opacity << 24) | (OTHER_RED << 16) | (OTHER_GREEN << 8) | (OTHER_BLUE);
+				color = new RGBA(OTHER_RED, OTHER_GREEN, OTHER_BLUE, preferredOpacity);
 		}
-		return pixel;
+		return color;
 	}
 }

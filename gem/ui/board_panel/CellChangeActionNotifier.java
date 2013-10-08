@@ -3,9 +3,9 @@ package gem.ui.board_panel;
 import java.util.Set;
 
 import gem.Global;
-import gem.simulation.state.ICell;
 import gem.simulation.state.ICell.CellState;
 import gem.ui.board_panel.BoardPanel.MouseButton;
+import gem.ui.board_panel.CellChangeActions.*;
 
 public class CellChangeActionNotifier extends AbstractCellChangeActionNotifier {
 	@Override
@@ -14,8 +14,7 @@ public class CellChangeActionNotifier extends AbstractCellChangeActionNotifier {
 				&& buttonPressed != MouseButton.LEFT) {
 			throw new IllegalArgumentException("The board state only changes when the user presses the left or right mouse button.");
 		}
-		
-		if(pressedKeys.contains("SPACE")) {
+		if(pressedKeys.contains("S")) {
 			return new SelectionAction(buttonPressed == MouseButton.LEFT);
 		}
 		
@@ -25,24 +24,5 @@ public class CellChangeActionNotifier extends AbstractCellChangeActionNotifier {
 			return new ChangeStateAction(CellState.DEAD);
 		}
 	}
-	private class ChangeStateAction implements ICellChangeAction {
-		private final CellState resultingState;
-		public ChangeStateAction(CellState resultingState) {
-			this.resultingState = resultingState;
-		}
-		@Override
-		public ICell applyActionToCell(ICell cell) {
-			return cell.getModifiedCopy(resultingState);
-		}
-	}
-	private class SelectionAction implements ICellChangeAction {
-		private final boolean setSelectedTo;
-		public SelectionAction(boolean setSelectedTo) {
-			this.setSelectedTo = setSelectedTo;
-		}
-		@Override
-		public ICell applyActionToCell(ICell cell) {
-			return cell.getModifiedCopy(setSelectedTo);
-		}
-	}
+	
 }

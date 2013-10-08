@@ -25,9 +25,6 @@ import gem.simulation.state.IState;
 
 import java.io.File;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
-
 //import com.google.gson.Gson;
 
 public class LamsasMetadataJsonBoardStateLogger implements IBoardWillIterateListener {
@@ -46,7 +43,7 @@ public class LamsasMetadataJsonBoardStateLogger implements IBoardWillIterateList
 			ex.printStackTrace();
 		}
 		*/
-		throw new NotImplementedException();
+		throw new RuntimeException("Not implemented.");
 	}
 	public void automatonWillIterate(ConwayState boardState) {
 		/*
@@ -60,7 +57,7 @@ public class LamsasMetadataJsonBoardStateLogger implements IBoardWillIterateList
 			ex.printStackTrace();
 		}
 		*/
-		throw new NotImplementedException();
+		throw new RuntimeException("Not implemented.");
 	}
 	public void quitLogging() {
 		/*
@@ -72,10 +69,10 @@ public class LamsasMetadataJsonBoardStateLogger implements IBoardWillIterateList
 		}
 		AutomatonVars.automaton.removeAutomatonWillIterateListener(this);
 		*/
-		throw new NotImplementedException();
+		throw new RuntimeException("Not implemented.");
 	}
 	@Override
 	public void boardWillIterate(IState currentState) {
-		throw new NotImplementedException();
+		throw new RuntimeException("Not implemented.");
 	}
 }
