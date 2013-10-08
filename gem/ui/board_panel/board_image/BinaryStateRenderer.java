@@ -17,14 +17,14 @@
      * along with GEM.  If not, see <http://www.gnu.org/licenses/>.
 	 */
 
-package gem.ui.board_image;
+package gem.ui.board_panel.board_image;
 
 import java.awt.Image;
 
 import gem.Global;
 import gem.simulation.board.IBoardStateChangedListener;
-import gem.simulation.board.ICell.CellState;
 import gem.simulation.state.IState;
+import gem.simulation.state.ICell.CellState;
 
 public class BinaryStateRenderer extends SingleColorCellRenderer implements IBoardStateChangedListener {
 	private static final int IMPASSABLE_RED = 175;

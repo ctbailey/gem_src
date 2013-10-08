@@ -1,14 +1,11 @@
-package gem.ui;
+package gem.ui.board_panel;
 
-import gem.simulation.board.ICell.CellState;
-import gem.ui.board_image.AbstractBoardImageSource;
-import gem.ui.board_image.IBoardImageChangedListener;
+import gem.ui.board_panel.board_image.AbstractBoardImageSource;
+import gem.ui.board_panel.board_image.IBoardImageChangedListener;
 
 public interface IBoardPanel extends IBoardImageChangedListener {
 
 	public void refreshBoardImage();
-	public CellState getUserCellTypeSelection();
-	public void setUserCellTypeSelection(CellState state);
 	public AbstractBoardImageSource getBoardImageSource();
 	public void setBoardImageSource(
 			AbstractBoardImageSource newImageSource);
@@ -24,7 +21,4 @@ public interface IBoardPanel extends IBoardImageChangedListener {
 	
 	public void addBoardInteractionListener(IBoardInteractionListener listener);
 	public void removeBoardInteractionListener(IBoardInteractionListener listener);
-	
-	public void addUserCellTypeSelectionChangedListener(IUserCellTypeSelectionChangedListener listener);
-	public void removeUserCellTypeSelectionChangedListener(IUserCellTypeSelectionChangedListener listener);
 }

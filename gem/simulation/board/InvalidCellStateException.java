@@ -19,7 +19,8 @@
 
 package gem.simulation.board;
 
-import gem.simulation.board.ICell.CellState;
+import gem.simulation.state.ICell;
+import gem.simulation.state.ICell.CellState;
 
 public class InvalidCellStateException extends RuntimeException {
 	public final Class<? extends ICell> cellType;

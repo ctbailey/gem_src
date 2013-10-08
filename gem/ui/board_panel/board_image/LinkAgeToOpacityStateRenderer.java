@@ -17,7 +17,7 @@
      * along with GEM.  If not, see <http://www.gnu.org/licenses/>.
 	 */
 
-package gem.ui.board_image;
+package gem.ui.board_panel.board_image;
 
 import static gem.Global.userInterface;
 
@@ -26,8 +26,8 @@ import java.awt.Image;
 import gem.Global;
 import gem.simulation.board.IBoardResetListener;
 import gem.simulation.board.IBoardStateChangedListener;
-import gem.simulation.board.ICell.CellState;
 import gem.simulation.state.IState;
+import gem.simulation.state.ICell.CellState;
 import gem.ui.UserDidNotConfirmException;
 
 import javax.swing.JLabel;

@@ -17,14 +17,10 @@
      * along with GEM.  If not, see <http://www.gnu.org/licenses/>.
 	 */
 
-package gem.ui.board_image;
+package gem.ui.board_panel;
 
-import java.awt.Image;
+import gem.simulation.state.ICell.CellState;
 
-public interface IBoardImageSource {
-	public Image getCurrentBoardImage();
-	public void refreshBoardImage();
-	
-	public void addBoardImageChangedListener(IBoardImageChangedListener listener);
-	public void removeBoardImageChangedListener(IBoardImageChangedListener listener);
+public interface ICellTypeSelectionChangedListener {
+	public void userCellTypeSelectionChanged(CellState newState);
 }

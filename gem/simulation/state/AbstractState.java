@@ -19,7 +19,6 @@
 
 package gem.simulation.state;
 
-import gem.simulation.board.ICell;
 import gem.simulation.state.neighbor_topology.INeighborGraph;
 
 import java.awt.Point;

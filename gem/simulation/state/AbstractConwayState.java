@@ -4,10 +4,9 @@ import static gem.Global.userInterface;
 import gem.Global;
 import gem.simulation.Utility;
 import gem.simulation.board.BoardDimensions;
-import gem.simulation.board.ICell;
-import gem.simulation.board.ICell.CellState;
 import gem.simulation.randomization.IRandomNumberSource;
 import gem.simulation.randomization.NoRandomNumbersRemainingException;
+import gem.simulation.state.ICell.CellState;
 import gem.simulation.state.neighbor_topology.INeighborGraph;
 import gem.ui.UserDidNotConfirmException;
 
@@ -23,7 +22,7 @@ import javax.swing.SpinnerNumberModel;
 
 public abstract class AbstractConwayState extends AbstractState {
 
-	private ConwayCell[][] cells;
+	private AbstractConwayCell[][] cells;
 	public static final CellState DEFAULT_CELL_STATE = CellState.DEAD;
 	
 	public AbstractConwayState(BoardDimensions dimensions) {
@@ -32,10 +31,10 @@ public abstract class AbstractConwayState extends AbstractState {
 	public AbstractConwayState(BoardDimensions dimensions, INeighborGraph neighborGraph) {
 		this(createDefaultCells(dimensions), neighborGraph);
 	}
-	public AbstractConwayState(ConwayCell[][] cells, INeighborGraph neighborGraph) {
+	public AbstractConwayState(AbstractConwayCell[][] cells, INeighborGraph neighborGraph) {
 		super(neighborGraph);
-		for(ConwayCell[] column : cells) {
-			for(ConwayCell c : column) {
+		for(AbstractConwayCell[] column : cells) {
+			for(AbstractConwayCell c : column) {
 				if(c == null) {
 					throw new NullPointerException("Tried to initialize a board state with at least one null entry in the cell array.");
 				}
@@ -66,11 +65,11 @@ public abstract class AbstractConwayState extends AbstractState {
 		return Utility.getRandomIndexPair(cells);
 	}
 	
-	protected ConwayCell[][] copyCells() {
-		ConwayCell[][] cellsCopy = new ConwayCell[getWidth()][getHeight()];
+	protected AbstractConwayCell[][] copyCells() {
+		AbstractConwayCell[][] cellsCopy = new AbstractConwayCell[getWidth()][getHeight()];
 		for(int x = 0; x < getWidth(); x++) {
 			for(int y = 0; y < getHeight(); y++) {
-				cellsCopy[x][y] = new ConwayCell(cells[x][y].getState());
+				cellsCopy[x][y] = cells[x][y].deepCopy();
 			}
 		}
 		return cellsCopy;
@@ -122,11 +121,11 @@ public abstract class AbstractConwayState extends AbstractState {
 		}
 		return true;
 	}
-	protected static ConwayCell[][] createDefaultCells(BoardDimensions dimensions) {
-		ConwayCell[][] cells = new ConwayCell[dimensions.getWidth()][dimensions.getHeight()];
+	protected static AbstractConwayCell[][] createDefaultCells(BoardDimensions dimensions) {
+		AbstractConwayCell[][] cells = new AbstractConwayCell[dimensions.getWidth()][dimensions.getHeight()];
 		for(int x = 0; x < dimensions.getWidth(); x++) {
 			for(int y = 0; y < dimensions.getHeight(); y++) {
-				cells[x][y] = new ConwayCell(DEFAULT_CELL_STATE); // Puts the cells in their default state
+				cells[x][y] = ConwayCell.createDefaultCell(); // Puts the cells in their default state
 			}
 		}
 		return cells;
@@ -172,18 +171,19 @@ public abstract class AbstractConwayState extends AbstractState {
 		}
 		return p;
 	}
-	protected ConwayCell[][] randomlyModifyCellState(IRandomNumberSource randomNumberSource, double threshold, CellState stateToRandomize) 
+	protected AbstractConwayCell[][] randomlyModifyCellState(IRandomNumberSource randomNumberSource, double threshold, CellState stateToRandomize) 
 			throws NoRandomNumbersRemainingException {
-		ConwayCell[][] randomlyGeneratedCells = new ConwayCell[getWidth()][getHeight()];
+		AbstractConwayCell[][] randomlyGeneratedCells = new AbstractConwayCell[getWidth()][getHeight()];
 		
 		for(int x = 0; x < getWidth(); x++) {
 			for(int y = 0; y < getHeight(); y++) {
-				CellState currentCellState = getCell(x, y).getState();
+				ICell currentCell = getCell(x,y);
+				CellState currentCellState = currentCell.getState();
 				if(currentCellState == stateToRandomize
 						|| currentCellState == CellState.DEAD) {
-					randomlyGeneratedCells[x][y] = new ConwayCell(getRandomCellState(randomNumberSource, threshold, stateToRandomize));
+					randomlyGeneratedCells[x][y] = (AbstractConwayCell) currentCell.getModifiedCopy((getRandomCellState(randomNumberSource, threshold, stateToRandomize)));
 				} else {
-					randomlyGeneratedCells[x][y] = new ConwayCell(currentCellState);
+					randomlyGeneratedCells[x][y] = (AbstractConwayCell) currentCell.deepCopy();
 				}
 			}
 		}
@@ -197,8 +197,8 @@ public abstract class AbstractConwayState extends AbstractState {
 	}
 	
 	// Methods that return a ConwayState (need to be overridden in subclasses)
-	public abstract AbstractConwayState getNextIteration(ConwayCell[][] newCells);
-	public abstract AbstractConwayState getModifiedCopy(CellState newState, int cellX, int cellY);
+	public abstract AbstractConwayState getNextIteration(AbstractConwayCell[][] newCells);
+	public abstract AbstractConwayState getModifiedCopy(ICell newCell, int cellX, int cellY);
 	public abstract AbstractConwayState getCopyWithClearedCellType(CellState toBeCleared);
 	public abstract AbstractConwayState createDefault(BoardDimensions dimensions);
 	public abstract AbstractConwayState createDefault(BoardDimensions dimensions, INeighborGraph neighbor);

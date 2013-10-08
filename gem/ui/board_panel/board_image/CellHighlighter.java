@@ -1,13 +1,13 @@
-package gem.ui.board_image;
+package gem.ui.board_panel.board_image;
 
 import java.awt.Image;
 import java.awt.Point;
 
 import gem.Global;
 import gem.simulation.state.IState;
-import gem.ui.IMouseLeftBoardListener;
-import gem.ui.IMouseMovedIntoNewCellListener;
-import gem.ui.board_image.AbstractStateRenderer;
+import gem.ui.board_panel.IMouseLeftBoardListener;
+import gem.ui.board_panel.IMouseMovedIntoNewCellListener;
+import gem.ui.board_panel.board_image.AbstractStateRenderer;
 
 public abstract class CellHighlighter extends AbstractStateRenderer implements IMouseMovedIntoNewCellListener, IMouseLeftBoardListener {
 	private int neighborRedValue;

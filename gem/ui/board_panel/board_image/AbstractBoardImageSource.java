@@ -17,7 +17,7 @@
      * along with GEM.  If not, see <http://www.gnu.org/licenses/>.
 	 */
 
-package gem.ui.board_image;
+package gem.ui.board_panel.board_image;
 
 
 import gem.ui.IMenuItemProvider;

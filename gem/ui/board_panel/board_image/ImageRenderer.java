@@ -1,4 +1,4 @@
-package gem.ui.board_image;
+package gem.ui.board_panel.board_image;
 
 import java.awt.AlphaComposite;
 import java.awt.Graphics;
@@ -33,7 +33,7 @@ public class ImageRenderer extends AbstractStateRenderer {
 	public Image getLatestImage() {
 		if(image != null) {
 			Image adjustedImage;
-			gem.ui.BoardPanel boardPanel = Global.userInterface.boardPanel;
+			gem.ui.board_panel.BoardPanel boardPanel = Global.userInterface.boardPanel;
 			
 			switch(imageDisplaySettings) {
 				case SCALE_TO_FILL_BOARD:

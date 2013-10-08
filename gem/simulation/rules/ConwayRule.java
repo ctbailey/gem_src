@@ -19,11 +19,11 @@
 
 package gem.simulation.rules;
 
-import gem.simulation.board.ICell;
 import gem.simulation.board.InvalidCellStateException;
-import gem.simulation.board.ICell.CellState;
 import gem.simulation.state.AbstractConwayState;
-import gem.simulation.state.ConwayCell;
+import gem.simulation.state.AbstractConwayCell;
+import gem.simulation.state.ICell;
+import gem.simulation.state.ICell.CellState;
 import gem.ui.UserDidNotConfirmException;
 
 import java.awt.event.ItemEvent;
@@ -51,7 +51,7 @@ public class ConwayRule extends AbstractRuleSet {
 	}
 	
 	public AbstractConwayState calculateNextState(AbstractConwayState currentState) {
-		ConwayCell[][] newCells = new ConwayCell[currentState.getWidth()][currentState.getHeight()];
+		AbstractConwayCell[][] newCells = new AbstractConwayCell[currentState.getWidth()][currentState.getHeight()];
 		for(int x = 0; x < currentState.getWidth(); x++) {
 			for(int y = 0; y < currentState.getHeight(); y++) {
 				newCells[x][y] = calculateNextCell(x,y, currentState);
@@ -59,10 +59,11 @@ public class ConwayRule extends AbstractRuleSet {
 		}
 		return currentState.getNextIteration(newCells);
 	}
-	private synchronized ConwayCell calculateNextCell(int x, int y, AbstractConwayState currentState) {
+	private synchronized AbstractConwayCell calculateNextCell(int x, int y, AbstractConwayState currentState) {
 		int livingNeighbors = currentState.getNumberOfNeighborsInState(x, y, CellState.ALIVE);
-		CellState newCellState = calculateNextCellState(currentState.getCell(x,y), livingNeighbors);
-		return new ConwayCell(newCellState);
+		ICell currentCell = currentState.getCell(x,y);
+		CellState newCellState = calculateNextCellState(currentCell, livingNeighbors);
+		return (AbstractConwayCell) currentCell.getModifiedCopy(newCellState);
 	}
 	private synchronized CellState calculateNextCellState(ICell cell, int livingNeighbors) {
 		CellState state = cell.getState();

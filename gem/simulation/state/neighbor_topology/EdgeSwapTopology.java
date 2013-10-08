@@ -10,10 +10,10 @@ import org.jgrapht.graph.DefaultWeightedEdge;
 import gem.simulation.Utility;
 import gem.simulation.board.BoardDimensions;
 
-public class EdgeSwapSmallWorldTopology extends SmallWorldTopology {
+public class EdgeSwapTopology extends SmallWorldTopology {
 	private final float rewiringProbability;
 	private static final Random randomNumberGenerator = new Random();
-	public EdgeSwapSmallWorldTopology(float rewiringProbability) {
+	public EdgeSwapTopology(float rewiringProbability) {
 		this.rewiringProbability = rewiringProbability; 
 	}
 	
@@ -93,12 +93,16 @@ public class EdgeSwapSmallWorldTopology extends SmallWorldTopology {
 		throw new RuntimeException("Random index was too big.");
 	}
 	private boolean isValidSwap(Point source1, Point source2, Point target1, Point target2, INeighborGraph graph) {
-		return !source1.equals(source2) // Sources can't be the same node
-				&& !target1.equals(target2) // Targets can't be the same node
-				&& !source1.equals(target2) // No loops (source1 will be connected to target 2 in the swap)
-				&& !source2.equals(target1) // Ditto
-				&& !graph.areNeighbors(source1, target2) // source1 can't already be a neighbor of target2 (or swapping would add an extra edge between source1 and target 2) 
-				&& !graph.areNeighbors(source2, target1); // ditto
+		return  !swapWouldResultInLoops(source1, source2, target1, target2, graph)
+				&& !swapWouldAddExtraEdgeBetweenNodes(source1, source2, target1, target2, graph);
 		
+	}
+	private boolean swapWouldResultInLoops(Point source1, Point source2, Point target1, Point target2, INeighborGraph graph) {
+		return source1.equals(target2) // No loops (source1 will be connected to target 2 in the swap)
+				|| source2.equals(target1); // Ditto
+	}
+	private boolean swapWouldAddExtraEdgeBetweenNodes(Point source1, Point source2, Point target1, Point target2, INeighborGraph graph) {
+		return graph.areNeighbors(source1, target2) // source1 can't already be a neighbor of target2 (or swapping would add an extra edge between source1 and target 2) 
+				&& graph.areNeighbors(source2, target1); // ditto
 	}
 }

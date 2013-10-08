@@ -22,8 +22,7 @@ package gem.simulation.state;
 import java.awt.Point;
 
 import gem.simulation.board.BoardDimensions;
-import gem.simulation.board.ICell;
-import gem.simulation.board.ICell.CellState;
+import gem.simulation.state.ICell.CellState;
 
 public interface IState {
 	public int getWidth();

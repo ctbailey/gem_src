@@ -21,13 +21,13 @@ package gem;
 
 import static gem.Global.*;
 
-import gem.ui.board_image.ImageRenderer.ImageDisplaySettings;
+import gem.ui.board_panel.BoardPanel.MouseButton;
+import gem.ui.board_panel.board_image.ImageRenderer.ImageDisplaySettings;
 import gem.simulation.ISimulationStoppedListener;
 import gem.simulation.board.IBoardDidIterateListener;
-import gem.simulation.board.ICell.CellState;
 import gem.simulation.state.IState;
+import gem.simulation.state.ICell.CellState;
 import gem.talk_to_outside_world.AutomatonSerializable;
-import gem.ui.BoardPanel.MouseButton;
 
 import java.awt.*;
 import java.awt.event.*;

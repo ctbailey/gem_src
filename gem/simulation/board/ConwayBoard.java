@@ -19,20 +19,21 @@
 
 package gem.simulation.board;
 import gem.Global;
-import gem.simulation.board.ICell.CellState;
 import gem.simulation.randomization.IRandomNumberSource;
 import gem.simulation.randomization.NoRandomNumbersRemainingException;
 import gem.simulation.rules.AbstractRuleSet;
 import gem.simulation.rules.ConwayRule;
 import gem.simulation.state.AbstractConwayState;
 import gem.simulation.state.AbstractState;
+import gem.simulation.state.AbstractConwayCell;
 import gem.simulation.state.ConwaySerializedState;
 import gem.simulation.state.ConwayState;
 import gem.simulation.state.IState;
+import gem.simulation.state.ICell.CellState;
 import gem.simulation.state.neighbor_topology.INeighborTopology;
 import gem.talk_to_outside_world.validation.SimpleValidationBoardState;
 import gem.ui.UserDidNotConfirmException;
-import gem.ui.BoardPanel.MouseButton;
+import gem.ui.board_panel.ICellChangeAction;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -178,30 +179,12 @@ public class ConwayBoard extends AbstractBoard {
 		}
 	}
 	
-	public void userInteracted(CellState currentlySelectedByUser, MouseButton buttonPressed, int cellX, int cellY) {
-		if(buttonPressed == MouseButton.LEFT || buttonPressed == MouseButton.RIGHT) {
-			setCurrentState(modifyStateWithUserInput(currentlySelectedByUser, buttonPressed, cellX, cellY));
-		}
+	public void cellChangeActionPerformed(ICellChangeAction action, int cellX, int cellY) {
+		setCurrentState(modifyStateWithUserInput(action, cellX, cellY));
 	}
-	private AbstractConwayState modifyStateWithUserInput(CellState userStateSelection, MouseButton buttonPressed, int cellX, int cellY) {
-		CellState newCellState = calculateNewCellStateFromUserInput(userStateSelection, buttonPressed, cellX, cellY);
-		return currentState.getModifiedCopy(newCellState, cellX, cellY);
-	}
-	private CellState calculateNewCellStateFromUserInput(CellState userStateSelection, MouseButton buttonPressed, int cellX, int cellY) {
-		CellState newCellState;
-		CellState oldCellState = currentState.getCell(cellX, cellY).getState();
-		
-		if(	(userStateSelection == oldCellState)
-				&& (buttonPressed == MouseButton.RIGHT) 
-				) {
-			newCellState = CellState.DEAD;
-		} else if(	(oldCellState == CellState.DEAD)
-					&& (buttonPressed == MouseButton.LEFT)) {
-			newCellState = userStateSelection;
-		} else {
-			newCellState = oldCellState;
-		}
-		return newCellState;
+	private AbstractConwayState modifyStateWithUserInput(ICellChangeAction action, int cellX, int cellY) {
+		AbstractConwayCell newCell = (AbstractConwayCell) action.applyActionToCell(currentState.getCell(cellX, cellY));
+		return currentState.getModifiedCopy(newCell, cellX, cellY);
 	}
 	
 	private synchronized void logAndUpdateState(AbstractConwayState abstractConwayState) {

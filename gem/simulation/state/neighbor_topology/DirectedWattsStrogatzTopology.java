@@ -9,9 +9,11 @@ import gem.simulation.Utility;
 import gem.simulation.board.BoardDimensions;
 
 public class DirectedWattsStrogatzTopology extends SmallWorldTopology {
-	private float rewiringProbability;
-	public DirectedWattsStrogatzTopology(float rewiringProbability) {
+	private final boolean rewireIncomingEdges;
+	private final float rewiringProbability;
+	public DirectedWattsStrogatzTopology(float rewiringProbability, boolean rewireIncomingEdges) {
 		this.rewiringProbability = rewiringProbability;
+		this.rewireIncomingEdges = rewireIncomingEdges;
 	}
 	@Override
 	protected INeighborGraph createRegularGraph(BoardDimensions dimensions) {
@@ -21,8 +23,14 @@ public class DirectedWattsStrogatzTopology extends SmallWorldTopology {
 	protected void rewireToSmallWorld(BoardDimensions dimensions,
 			INeighborGraph graph) {
 		Set<Point> points = graph.vertexSet();
-		for(Point p : points) {
-			rewireOutgoingEdges(p, graph, dimensions);
+		if(rewireIncomingEdges) {
+			for(Point p : points) {
+				rewireIncomingEdges(p, graph, dimensions);
+			}
+		} else {
+			for(Point p : points) {
+				rewireOutgoingEdges(p, graph, dimensions);
+			}
 		}
 	}
 	private void rewireIncomingEdges(Point p, INeighborGraph g, BoardDimensions dimensions) {

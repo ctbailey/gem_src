@@ -20,7 +20,7 @@
 package gem.simulation;
 
 import gem.simulation.board.BoardDimensions;
-import gem.simulation.state.ConwayCell;
+import gem.simulation.state.AbstractConwayCell;
 
 import java.awt.Point;
 import java.util.Arrays;
@@ -56,8 +56,8 @@ public class Utility {
 		}
 		return val;
 	}
-	public static ConwayCell[][] to2DArray(List<List<ConwayCell>> cells) {
-		ConwayCell[][] cellArray = new ConwayCell[cells.size()][cells.get(0).size()];
+	public static AbstractConwayCell[][] to2DArray(List<List<AbstractConwayCell>> cells) {
+		AbstractConwayCell[][] cellArray = new AbstractConwayCell[cells.size()][cells.get(0).size()];
 		for(int x = 0; x < cells.size(); x++) {
 			for(int y = 0; y < cells.get(x).size(); y++) {
 				if(cells.get(x).get(y) == null) {

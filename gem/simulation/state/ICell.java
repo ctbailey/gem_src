@@ -17,8 +17,10 @@
      * along with GEM.  If not, see <http://www.gnu.org/licenses/>.
 	 */
 
-package gem.simulation.board;
+package gem.simulation.state;
 
+
+import gem.simulation.board.InvalidCellStateException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -73,4 +75,10 @@ public interface ICell {
 	};
 
 	public CellState getState();
+	public boolean isSelected();
+	public ICell getModifiedCopy(CellState newState);
+	public ICell getModifiedCopy(boolean isSelected);
+	public ICell getModifiedCopy(CellState newState, boolean isSelected);
+	public ICell deepCopy();
+	
 }

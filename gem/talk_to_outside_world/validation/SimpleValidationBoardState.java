@@ -21,7 +21,7 @@ package gem.talk_to_outside_world.validation;
 
 import gem.Global;
 import gem.simulation.board.BoardDimensions;
-import gem.simulation.state.ConwayCell;
+import gem.simulation.state.AbstractConwayCell;
 import gem.simulation.state.ConwayState;
 import gem.simulation.state.IState;
 
@@ -48,7 +48,7 @@ public class SimpleValidationBoardState {
 		int xMax = findHighestX(cells);
 		int yMax = findHighestY(cells);
 		
-		ConwayCell[][] conwayCells = new ConwayCell[xMax + 1][yMax + 1];
+		AbstractConwayCell[][] conwayCells = new AbstractConwayCell[xMax + 1][yMax + 1];
 		for(SimpleValidationCell c : cells) {
 			conwayCells[c.x][c.y] = c.toConwayCell();
 		}

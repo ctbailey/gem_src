@@ -18,11 +18,11 @@
 	 */
 
 package gem.simulation.board;
-import gem.simulation.board.ICell.CellState;
 import gem.simulation.randomization.IRandomNumberSource;
 import gem.simulation.rules.AbstractRuleSet;
 import gem.simulation.rules.IRulesChangedListener;
 import gem.simulation.state.IState;
+import gem.simulation.state.ICell.CellState;
 
 import java.io.File;
 

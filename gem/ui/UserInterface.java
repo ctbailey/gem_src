@@ -26,15 +26,18 @@ import gem.simulation.*;
 import gem.simulation.board.BoardDimensions;
 import gem.simulation.board.IBoardSizeChangedListener;
 import gem.simulation.board.IBoardStateChangedListener;
-import gem.simulation.board.ICell.CellState;
 import gem.simulation.randomization.IRandomNumberSource;
 import gem.simulation.randomization.PseudoRandomNumberSource;
 import gem.simulation.rules.AbstractRuleSet;
 import gem.simulation.rules.IRulesChangedListener;
 import gem.simulation.state.IState;
+import gem.simulation.state.ICell.CellState;
 import gem.talk_to_outside_world.RandomDotOrgRandomNumberSource;
 import gem.talk_to_outside_world.validation.JsonLogger;
 import gem.talk_to_outside_world.validation.SimpleValidationBoardState;
+import gem.ui.board_panel.BoardPanel;
+import gem.ui.board_panel.IMouseLeftBoardListener;
+import gem.ui.board_panel.ICellTypeSelectionChangedListener;
 
 import javax.swing.*;
 import java.awt.*;
@@ -45,9 +48,11 @@ import java.io.*;
 
 public class UserInterface {
 	
+	public Keyboard keyboard;
 	public JPanel controlPanel;
 	public JPanel infoPanel;
 	public JPanel westernPanel;
+		public CellTypeSelectionPanel selectedCellTypePanel;
 	public JButton zoomToFitButton;
 	public JRadioButtonMenuItem pseudoRandomModeRB;
 	public JRadioButtonMenuItem trueRandomModeRB;
@@ -65,7 +70,6 @@ public class UserInterface {
 		public JMenu viewMenu;
 		public JMenu randomizationMenu;
 		public JMenu experimentalMenu;
-	
 	
 	public JFrame mainFrame; // The main window of the automaton that contains the board area, control area, etc.
 		public JScrollPane boardScrollPane; // The scrolling panel; contains the board area
@@ -121,6 +125,8 @@ public class UserInterface {
 		buildWesternArea();
 		buildMenuArea();
 		buildSouthernArea();
+		
+		
 		
 		mainFrame.setBounds(0,0,1000,800);
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -205,6 +211,9 @@ public class UserInterface {
 			JButton fasterButton = new JButton("Faster");
 			fasterButton.addActionListener(new FasterListener());
 			transportPanel.add(fasterButton);
+			
+	// Cell type selection panel
+		selectedCellTypePanel = new CellTypeSelectionPanel();
 			
 	// Rules panel
 		JPanel rulesPanel = new JPanel();
@@ -308,40 +317,15 @@ public class UserInterface {
 					likelihoodComboBoxConstraints.fill = GridBagConstraints.BOTH;
 				boardManipulatePanel.add(randomizeSpinner,likelihoodComboBoxConstraints);
 		
-	// Populate paint panel
-		JPanel paintPanel = new JPanel();
-		GridBagConstraints paintConstraints = new GridBagConstraints();
-		paintConstraints.gridx = 0;
-		paintConstraints.gridy = 7;
-		paintConstraints.weighty = 1;
-		paintConstraints.fill = GridBagConstraints.BOTH;
-		paintPanel.setLayout(new GridLayout(0,1));
-		paintPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
-			JLabel selectATileLabel = new JLabel("Select a cell type to place:");
-				paintPanel.add(selectATileLabel);
-			
-			ButtonGroup paintPanelRBGroup = new ButtonGroup();
-			JRadioButton livingCellRB = new JRadioButton("Living cell");
-				livingCellRB.addActionListener(new LivingCellRBListener());
-				paintPanelRBGroup.add(livingCellRB);
-				livingCellRB.setSelected(true);
-			
-			JRadioButton impassableCellRB = new JRadioButton("Impassable cell");
-				impassableCellRB.addActionListener(new ImpassableCellRBListener());
-				paintPanelRBGroup.add(impassableCellRB);
-				
-			paintPanel.add(livingCellRB);
-			paintPanel.add(impassableCellRB);
-		
-		JPanel invisoPanel = new JPanel(); // Just used to take up space at the bottom of the control panel
-		invisoPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+	JPanel invisoPanel = new JPanel(); // Just used to take up space at the bottom of the control panel
+	invisoPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 		
 	// Add sub-panels to the western panel
 		westernPanel.add(transportPanel,transportConstraints);
 		westernPanel.add(rulesPanel,rulesConstraints);
 		westernPanel.add(clearPanel,clearConstraints);
 		westernPanel.add(boardManipulatePanel,boardManipulateConstraints);
-		westernPanel.add(paintPanel,paintConstraints);
+		westernPanel.add(selectedCellTypePanel,selectedCellTypePanel.getGridBagConstraints());
 		westernPanel.add(invisoPanel);
 	
 		mainFrame.add(westernPanel, BorderLayout.WEST);
@@ -540,15 +524,15 @@ public class UserInterface {
 			startButton.setText(STOP_STRING);
 		}
 	}
-	class ClearCellTypeButtonUpdater implements IUserCellTypeSelectionChangedListener {
+	class ClearCellTypeButtonUpdater implements ICellTypeSelectionChangedListener {
 		JButton clearCellTypeButton;
 		private static final String TEXT1 = "Clear all ";
 		private static final String TEXT2 = " cells";
 		
 		public ClearCellTypeButtonUpdater(JButton clearCellTypeButton) {
 			this.clearCellTypeButton = clearCellTypeButton;
-			clearCellTypeButton.setText(TEXT1 + CellState.toAdjective(boardPanel.getUserCellTypeSelection()) + TEXT2);
-			boardPanel.addUserCellTypeSelectionChangedListener(this);
+			clearCellTypeButton.setText(TEXT1 + CellState.toAdjective(selectedCellTypePanel.getCurrentlySelectedState()) + TEXT2);
+			selectedCellTypePanel.addCellTypeSelectionChangedListener(this);
 		}
 		@Override
 		public void userCellTypeSelectionChanged(CellState newState) {
@@ -717,7 +701,7 @@ public class UserInterface {
 				randomNumberSource = new PseudoRandomNumberSource();
 			}
 			double threshold = getThreshold();
-			CellState stateToRandomize = boardPanel.getUserCellTypeSelection();
+			CellState stateToRandomize = selectedCellTypePanel.getCurrentlySelectedState();
 			simulator.getBoard().randomizeBoard(randomNumberSource, threshold, stateToRandomize);
 		}
 		private double getThreshold() {
@@ -733,7 +717,7 @@ public class UserInterface {
 	}
 	class ClearSelectedCellTypeListener implements ActionListener {
 		public void actionPerformed(ActionEvent ev) {
-			Global.simulator.getBoard().clearCellTypeFromCurrentState(boardPanel.getUserCellTypeSelection());
+			Global.simulator.getBoard().clearCellTypeFromCurrentState(selectedCellTypePanel.getCurrentlySelectedState());
 		}
 	}
 	class FasterListener implements ActionListener {
@@ -756,16 +740,7 @@ public class UserInterface {
 			simulator.getBoard().pasteFromClipboard();
 		}
 	}
-	class LivingCellRBListener implements ActionListener {
-		public void actionPerformed(ActionEvent ev) {
-			boardPanel.setUserCellTypeSelection(CellState.ALIVE);
-		}
-	}
-	class ImpassableCellRBListener implements ActionListener {
-		public void actionPerformed(ActionEvent ev) {
-			boardPanel.setUserCellTypeSelection(CellState.IMPASSABLE);
-		}
-	}
+	
 	class ZoomInButtonListener implements ActionListener {
 		public void actionPerformed(ActionEvent ev) {
 			boardPanel.zoomIn();

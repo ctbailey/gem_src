@@ -20,9 +20,10 @@
 package gem.talk_to_outside_world.validation;
 
 import static gem.LamsasMetadataModel.*;
-import gem.simulation.state.ConwayCell;
+import gem.simulation.state.AbstractConwayCell;
+import gem.simulation.state.ICell;
 
-public class LamsasCell extends ConwayCell {
+public class LamsasCell extends AbstractConwayCell {
 	
 	private final String id;
 	private final String oldNumber;
@@ -91,7 +92,7 @@ public class LamsasCell extends ConwayCell {
 			String stateAbbreviation,
 			String fedComm
 			) {
-		super(cellState);
+		super(cellState, false);
 		
 		this.id = id;
 		this.oldNumber = oldNumber;
@@ -206,5 +207,25 @@ public class LamsasCell extends ConwayCell {
 	}
 	public int getFedComm() {
 		return fedComm;
+	}
+
+	@Override
+	public ICell getModifiedCopy(CellState newState) {
+		throw new RuntimeException("Not implemented yet.");
+	}
+
+	@Override
+	public AbstractConwayCell deepCopy() {
+		throw new RuntimeException("Not implemented yet.");
+	}
+
+	@Override
+	public ICell getModifiedCopy(boolean isSelected) {
+		throw new RuntimeException("Not implemented yet.");
+	}
+
+	@Override
+	public ICell getModifiedCopy(CellState newState, boolean isSelected) {
+		throw new RuntimeException("Not implemented yet.");
 	}
 }

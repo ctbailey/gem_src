@@ -1,8 +1,8 @@
-package gem.ui.board_image;
+package gem.ui.board_panel.board_image;
 
 import gem.ui.IMapImageLoadedListener;
 import gem.ui.UserDidNotConfirmException;
-import gem.ui.board_image.ImageRenderer.ImageDisplaySettings;
+import gem.ui.board_panel.board_image.ImageRenderer.ImageDisplaySettings;
 
 import java.awt.Graphics;
 import java.awt.Image;

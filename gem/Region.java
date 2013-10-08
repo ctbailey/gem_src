@@ -19,7 +19,7 @@
 
 package gem;
 import static gem.Global.*;
-import gem.simulation.board.ICell.CellState;
+import gem.simulation.state.ICell.CellState;
 
 public class Region {
 	

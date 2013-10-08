@@ -24,15 +24,15 @@ import gem.simulation.rules.AbstractRuleSet;
 import gem.simulation.rules.IRulesChangedListener;
 import gem.simulation.state.IState;
 import gem.simulation.state.neighbor_topology.INeighborTopologyChangedListener;
-import gem.ui.IBoardInteractionListener;
 import gem.ui.IMenuItemProvider;
+import gem.ui.board_panel.ICellChangeActionListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static gem.Global.*;
 
-public abstract class AbstractBoard implements IBoard, IBoardInteractionListener, IMenuItemProvider, INeighborTopologyChangedListener {
+public abstract class AbstractBoard implements IBoard, ICellChangeActionListener, IMenuItemProvider, INeighborTopologyChangedListener {
 	
 	private List<IBoardStateChangedListener> boardStateChangedListeners = new ArrayList<IBoardStateChangedListener>(); 
 	private List<IRulesChangedListener> rulesChangedListeners = new ArrayList<IRulesChangedListener>();
@@ -87,7 +87,7 @@ public abstract class AbstractBoard implements IBoard, IBoardInteractionListener
 		boardDidIterateListeners.clear();
 	}
 	private void unregisterThisAsListener() {
-		Global.userInterface.boardPanel.removeBoardInteractionListener(this);
+		Global.userInterface.boardPanel.removeCellChangeActionListener(this);
 	}
 	
 	private void basicIsReplacing(AbstractBoard oldBoard) {
@@ -97,7 +97,7 @@ public abstract class AbstractBoard implements IBoard, IBoardInteractionListener
 	protected abstract void abstractIsReplacing(AbstractBoard oldBoard);
 	private void addThisAsListener() {
 		if(userInterface.boardPanel != null) {
-			userInterface.boardPanel.addBoardInteractionListener(this);
+			userInterface.boardPanel.addCellChangeActionListener(this);
 		}
 	}
 	

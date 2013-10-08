@@ -17,11 +17,12 @@
      * along with GEM.  If not, see <http://www.gnu.org/licenses/>.
 	 */
 
-package gem.ui;
+package gem.ui.board_panel;
 
-import gem.simulation.board.ICell.CellState;
-import gem.ui.BoardPanel.MouseButton;
+import java.util.Set;
+
+import gem.ui.board_panel.BoardPanel.MouseButton;
 
 public interface IBoardInteractionListener {
-	public void userInteracted(CellState currentlySelectedByUser, MouseButton buttonPressed, int cellX, int cellY);
+	public void userInteracted(MouseButton buttonPressed, Set<String> keysPressed, int cellX, int cellY);
 }

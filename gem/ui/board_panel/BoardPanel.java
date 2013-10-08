@@ -17,14 +17,11 @@
      * along with GEM.  If not, see <http://www.gnu.org/licenses/>.
 	 */
 
-package gem.ui;
+package gem.ui.board_panel;
 
 import gem.Global;
-import gem.simulation.board.ICell.CellState;
-import gem.talk_to_outside_world.AutomatonSerializable;
-import gem.ui.board_image.AbstractBoardImageSource;
-import gem.ui.board_image.ChainBoardImageSource;
-import gem.ui.board_image.IBoardImageChangedListener;
+import gem.ui.board_panel.board_image.AbstractBoardImageSource;
+import gem.ui.board_panel.board_image.ChainBoardImageSource;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -36,26 +33,24 @@ import javax.swing.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
  
 
-public class BoardPanel extends JPanel implements AutomatonSerializable, IBoardImageChangedListener, IBoardPanel, IMenuProvider {
+public class BoardPanel extends AbstractBoardPanel {
 	static final long serialVersionUID = 6;
 	
 	public enum MouseButton {LEFT, RIGHT, WHEEL, NONE}
 	private static final int BOARD_MIN_SIZE = 100; // The minimum size of the board in "user space"
 	private static final double DEFAULT_ZOOM_IN_SCALE = 1.2;
 	private static final double DEFAULT_ZOOM_OUT_SCALE = 0.8;
-	private static final CellState DEFAULT_USER_SELECTION = CellState.ALIVE;
 	
 	private BoardPanelMouseManager mouseManager;
 	private AbstractBoardImageSource boardImageSource;
 	public BufferedImage map;
 	
-	private CellState userSelection = DEFAULT_USER_SELECTION; // Used to determine what cell to place when the user clicks/drags on the board
-	
+	private AbstractCellChangeActionNotifier cellChangeActionNotifier;
 	// Event fields
 	private List<IBoardInteractionListener> boardInteractionListeners = new ArrayList<IBoardInteractionListener>();
-	private List<IUserCellTypeSelectionChangedListener> userCellTypeSelectionChangedListeners = new ArrayList<IUserCellTypeSelectionChangedListener>();
 	private List<IMouseMovedIntoNewCellListener> mouseMovedIntoNewCellListeners = new ArrayList<IMouseMovedIntoNewCellListener>();
 	
 	public BoardPanel() {
@@ -68,7 +63,10 @@ public class BoardPanel extends JPanel implements AutomatonSerializable, IBoardI
 		
 		this.addMouseListener(mouseManager);
 		this.addMouseMotionListener(mouseManager);
-		this.addBoardInteractionListener(Global.simulator.getBoard());
+		
+		cellChangeActionNotifier = new CellChangeActionNotifier();
+		this.addBoardInteractionListener(cellChangeActionNotifier);
+		cellChangeActionNotifier.addCellChangeActionListener(Global.simulator.getBoard());
 		
 		this.setToolTipText("");
 		
@@ -117,15 +115,6 @@ public class BoardPanel extends JPanel implements AutomatonSerializable, IBoardI
 		g2d.drawImage(boardImageSource.getCurrentBoardImage(),0,0,this.getWidth(),this.getHeight(), null); // draw the board
 	}
 	
-	@Override
-	public CellState getUserCellTypeSelection() {
-		return userSelection;
-	}
-	@Override
-	public void setUserCellTypeSelection(CellState state) {
-		userSelection = state;
-		notifyUserCellTypeSelectionChangedListeners(state);
-	}
 	private double cellWidth() {
 		double cellWidth = (double) this.getWidth() / (double)Global.simulator.getBoard().getCurrentState().getWidth(); // assumes a rectangular world array
 		return cellWidth;
@@ -323,13 +312,13 @@ public class BoardPanel extends JPanel implements AutomatonSerializable, IBoardI
 			@Override
 			public void mousePressed(MouseEvent e) {
 				previousCell.setLocation(currentCell);
-				notifyBoardInteractionListeners(userSelection, currentButtonPressed, currentCell.x, currentCell.y);
+				notifyBoardInteractionListeners(currentButtonPressed, Global.userInterface.keyboard.getKeysPressed(), currentCell.x, currentCell.y);
 			}
 			@Override
 			public void mouseDragged(MouseEvent e) {
 				if(shouldReportDragInteraction(currentCell, e.getX(), e.getY())) {
 					previousCell.setLocation(currentCell);
-					notifyBoardInteractionListeners(userSelection, currentButtonPressed, currentCell.x, currentCell.y);
+					notifyBoardInteractionListeners(currentButtonPressed, Global.userInterface.keyboard.getKeysPressed(), currentCell.x, currentCell.y);
 				}
 			}
 			
@@ -400,7 +389,7 @@ public class BoardPanel extends JPanel implements AutomatonSerializable, IBoardI
 			
 			private boolean shouldScroll(int mouseX, int mouseY) {
 				return (currentButtonPressed == scrollButton)
-						&& isPointOnBoard(mouseX, mouseY); // TODO: Put this in a subclass?
+						&& isPointOnBoard(mouseX, mouseY);
 			}
 			
 			public void mouseReleased(MouseEvent e){}
@@ -451,23 +440,9 @@ public class BoardPanel extends JPanel implements AutomatonSerializable, IBoardI
 	public void removeBoardInteractionListener(IBoardInteractionListener listener) {
 		boardInteractionListeners.remove(listener);
 	}
-	private void notifyBoardInteractionListeners(CellState currentlySelectedByUser, MouseButton buttonPressed, int cellX, int cellY) {
+	private void notifyBoardInteractionListeners(MouseButton buttonPressed, Set<String> keysPressed, int cellX, int cellY) {
 		for(IBoardInteractionListener listener : boardInteractionListeners) {
-			listener.userInteracted(currentlySelectedByUser, buttonPressed, cellX, cellY);
-		}
-	}
-	
-	@Override
-	public void addUserCellTypeSelectionChangedListener(IUserCellTypeSelectionChangedListener listener) {
-		userCellTypeSelectionChangedListeners.add(listener);
-	}
-	@Override
-	public void removeUserCellTypeSelectionChangedListener(IUserCellTypeSelectionChangedListener listener) {
-		userCellTypeSelectionChangedListeners.remove(listener);
-	}
-	private void notifyUserCellTypeSelectionChangedListeners(CellState newSelection) {
-		for(IUserCellTypeSelectionChangedListener listener : userCellTypeSelectionChangedListeners) {
-			listener.userCellTypeSelectionChanged(newSelection);
+			listener.userInteracted(buttonPressed, keysPressed, cellX, cellY);
 		}
 	}
 
@@ -481,6 +456,16 @@ public class BoardPanel extends JPanel implements AutomatonSerializable, IBoardI
 		for(IMouseMovedIntoNewCellListener listener : mouseMovedIntoNewCellListeners) {
 			listener.mouseMovedIntoNewCell(cellX, cellY);
 		}
+	}
+	
+	@Override
+	public void addCellChangeActionListener(ICellChangeActionListener listener) {
+		cellChangeActionNotifier.addCellChangeActionListener(listener);
+	}
+
+	@Override
+	public boolean removeCellChangeActionListener(ICellChangeActionListener listener) {
+		return cellChangeActionNotifier.removeCellChangeActionListener(listener);
 	}
 	
 	// Save and load methods
@@ -549,5 +534,4 @@ public class BoardPanel extends JPanel implements AutomatonSerializable, IBoardI
 		}
 		return viewMenu;
 	}
-
 }

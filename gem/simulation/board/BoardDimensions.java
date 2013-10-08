@@ -19,6 +19,8 @@
 
 package gem.simulation.board;
 
+import gem.simulation.state.ICell;
+
 public class BoardDimensions {
 	private final int width;
 	private final int height;

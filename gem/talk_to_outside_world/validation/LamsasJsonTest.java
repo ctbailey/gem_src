@@ -19,8 +19,9 @@
 
 package gem.talk_to_outside_world.validation;
 
-import gem.simulation.board.ICell.CellState;
+import gem.simulation.state.AbstractConwayCell;
 import gem.simulation.state.ConwayCell;
+import gem.simulation.state.ICell.CellState;
 
 import com.google.gson.Gson;
 import org.junit.Test;
@@ -70,7 +71,7 @@ public class LamsasJsonTest {
 	@SuppressWarnings("unused")
 	public void testCellSerializationAndDeserialization() {
 		Gson gs = new Gson();
-		ConwayCell c = new ConwayCell(CellState.ALIVE);
+		AbstractConwayCell c = new ConwayCell(CellState.ALIVE, false);
 		String s = gs.toJson(c);
 	}
 

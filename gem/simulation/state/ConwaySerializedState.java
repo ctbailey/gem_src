@@ -21,7 +21,7 @@ package gem.simulation.state;
 
 import gem.simulation.Utility;
 import gem.simulation.board.InvalidCellStateException;
-import gem.simulation.board.ICell.CellState;
+import gem.simulation.state.ICell.CellState;
 import gem.simulation.state.neighbor_topology.INeighborGraph;
 
 import java.nio.ByteBuffer;
@@ -76,8 +76,8 @@ public class ConwaySerializedState implements ISerializedState {
 			byteArray[i] = (byte) string.charAt(i);
 		}
 		
-		List<List<ConwayCell>> cellList = new ArrayList<List<ConwayCell>>();
-		cellList.add(new ArrayList<ConwayCell>());
+		List<List<AbstractConwayCell>> cellList = new ArrayList<List<AbstractConwayCell>>();
+		cellList.add(new ArrayList<AbstractConwayCell>());
 		
 		boolean[] bits = new boolean[Byte.SIZE];
 		for(byte b : byteArray) {
@@ -89,14 +89,14 @@ public class ConwaySerializedState implements ISerializedState {
 						cellList.remove(cellList.size() - 1);
 						break;
 					} else {
-						cellList.add(new ArrayList<ConwayCell>());
+						cellList.add(new ArrayList<AbstractConwayCell>());
 					}
 				} else {
 					cellList.get(cellList.size() - 1).add(
 							new ConwayCell(
 									CellState.parse(
 											Arrays.asList(bits[i], bits[i+1])
-									)
+									), false
 							));
 				}
 			}
@@ -107,7 +107,7 @@ public class ConwaySerializedState implements ISerializedState {
 	private static void validateCellState(List<Boolean> bits) {
 		int val = Utility.ToByte(bits);
 		if(	val < 0 || val > 2) {
-			throw new InvalidCellStateException(ConwayCell.class, CellState.convert(val));		
+			throw new InvalidCellStateException(AbstractConwayCell.class, CellState.convert(val));		
 		}
 	}
 }

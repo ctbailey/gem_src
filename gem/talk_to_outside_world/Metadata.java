@@ -22,7 +22,7 @@ package gem.talk_to_outside_world;
 import static gem.Global.*;
 
 import gem.Debug;
-import gem.simulation.board.ICell.CellState;
+import gem.simulation.state.ICell.CellState;
 
 import java.awt.*;
 import java.awt.event.*;

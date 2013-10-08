@@ -19,11 +19,11 @@
 
 package gem.simulation.rules;
 
-import gem.simulation.state.ConwayCell;
+import gem.simulation.state.AbstractConwayCell;
 import gem.simulation.state.ConwayState;
 
 public abstract class AutomatonRuleSet {
-	abstract ConwayCell applyRuleSet(ConwayState boardState, ConwayCell cell) throws Exception;
+	abstract AbstractConwayCell applyRuleSet(ConwayState boardState, AbstractConwayCell cell) throws Exception;
 	abstract boolean shouldStop(ConwayState newState, ConwayState oldState);
 	abstract int getNumberOfRuleApplications();
 }
