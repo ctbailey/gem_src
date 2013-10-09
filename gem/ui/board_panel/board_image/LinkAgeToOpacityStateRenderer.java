@@ -52,8 +52,8 @@ public class LinkAgeToOpacityStateRenderer extends BoardStateChangedRenderer imp
 	private static final int OTHER_BLUE = 0;
 	private static final int OTHER_GREEN = 0;
 	
-	private static final int MINIMUM_OPACITY = 1;
-	private static final int NON_LIVING_OPACITY = 255;
+	private static final float MINIMUM_OPACITY = 0.05f;
+	private static final float NON_LIVING_OPACITY = 1;
 	
 	private int[][] cellAges;
 	private int fullOpacityAge; // 255 is opaque
@@ -92,7 +92,13 @@ public class LinkAgeToOpacityStateRenderer extends BoardStateChangedRenderer imp
 	@Override
 	protected RGBA getColorAtPoint(IState state, int x, int y,
 			float normalizedMaxOpacity) {
-		int opacity = calculateOpacityForCell(x,y, state.getCell(x, y).getState(), normalizedMaxOpacity);
+		float opacity = -1;
+		try{
+			opacity = calculateOpacityForCell(x,y, state.getCell(x, y).getState(), normalizedMaxOpacity);
+		}catch(ArrayIndexOutOfBoundsException ex) {
+			cellAges = new int[state.getWidth()][state.getHeight()];
+			opacity = calculateOpacityForCell(x,y, state.getCell(x, y).getState(), normalizedMaxOpacity);
+		}
 		RGBA color;
 		switch(state.getCell(x, y).getState()) {
 			case IMPASSABLE: // if the cell is impassable, set color to grey
@@ -113,18 +119,16 @@ public class LinkAgeToOpacityStateRenderer extends BoardStateChangedRenderer imp
 		return color;
 	}
 
-	private int calculateOpacityForCell(int x, int y, CellState state, float normalizedMaximumOpacity) {
-		int opacity;
+	private float calculateOpacityForCell(int x, int y, CellState state, float normalizedMaximumOpacity) {
+		float normalizedOpacity;
 		if(state == CellState.ALIVE) {
-			double normalizedOpacity = (float)cellAges[x][y] / (float)fullOpacityAge;
-			normalizedOpacity = Math.min(normalizedOpacity, 1.0); // now normalizedOpacity is between 0 and 1
-			int tempOpacity = (int)(normalizedOpacity * 255);
-			opacity = Math.max(tempOpacity, MINIMUM_OPACITY);
+			float tempOpacity = (float)cellAges[x][y] / (float)fullOpacityAge; // Between 0 and positive infinity
+			normalizedOpacity = (float)Math.min(tempOpacity, 1.0f); // Between 0 and 1
 		} else {
-			opacity = NON_LIVING_OPACITY;
+			normalizedOpacity = NON_LIVING_OPACITY;
 		}
-		
-		return (int)(opacity * normalizedMaximumOpacity);
+		normalizedOpacity *= normalizedMaximumOpacity;
+		return Math.max(normalizedOpacity, MINIMUM_OPACITY);
 	}
 	private void updateCellAge(IState newState) {
 		try {

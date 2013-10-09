@@ -37,6 +37,7 @@ public abstract class CellHighlighter extends AbstractStateRenderer implements I
 	@Override
 	public void wasMadeSpurious(IStateRenderer replacement) {
 		removeThisAsEventListener();
+		setLatestImage(createBlankImage());
 	}
 
 	@Override

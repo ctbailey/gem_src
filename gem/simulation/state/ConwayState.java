@@ -56,6 +56,16 @@ public final class ConwayState extends AbstractConwayState {
 		}
 		return new ConwayState(cellsCopy, neighborGraph);
 	}
+	@Override
+	public ConwayState getCopyWithClearedSelection() {
+		AbstractConwayCell[][] cellsCopy = copyCells();
+		for(int x = 0; x < getWidth(); x++) {
+			for(int y = 0; y < getHeight(); y++) {
+				cellsCopy[x][y].setSelected(false);
+			}
+		}
+		return new ConwayState(cellsCopy, neighborGraph);
+	}
 
 	public ConwayState createDefault(BoardDimensions dimensions) {
 		return new ConwayState(dimensions);

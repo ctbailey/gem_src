@@ -28,7 +28,9 @@ public class EdgeSwapTopology extends SmallWorldTopology {
 		Point[] nodes = Utility.toArray(graph.vertexSet());
 		Set<DefaultWeightedEdge> edgesAlreadyIteratedOver = new LinkedHashSet<DefaultWeightedEdge>();
 		for(Point p : nodes) {
-			rewireSingleNode(p, dimensions, graph, edgesAlreadyIteratedOver);
+			//if(Global.simulator.getBoard().getCurrentState().getCell(p.x, p.y).isSelected()) {
+				rewireSingleNode(p, dimensions, graph, edgesAlreadyIteratedOver);
+			//}
 		}
 	}
 	private void rewireSingleNode(Point p, BoardDimensions dimensions, INeighborGraph graph, Set<DefaultWeightedEdge> edgesAlreadyIteratedOver) {
@@ -95,7 +97,6 @@ public class EdgeSwapTopology extends SmallWorldTopology {
 	private boolean isValidSwap(Point source1, Point source2, Point target1, Point target2, INeighborGraph graph) {
 		return  !swapWouldResultInLoops(source1, source2, target1, target2, graph)
 				&& !swapWouldAddExtraEdgeBetweenNodes(source1, source2, target1, target2, graph);
-		
 	}
 	private boolean swapWouldResultInLoops(Point source1, Point source2, Point target1, Point target2, INeighborGraph graph) {
 		return source1.equals(target2) // No loops (source1 will be connected to target 2 in the swap)

@@ -45,6 +45,8 @@ public interface IBoard {
 	public void pasteFromClipboard();
 	public void loadCurrentStateFromFile(File file);
 
+	public void clearSelection();
+	
 	public void resizeBasedOnUserInput();
 	public void resize(BoardDimensions newDimensions);
 	

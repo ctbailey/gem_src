@@ -31,7 +31,7 @@ import gem.simulation.state.ConwayState;
 import gem.simulation.state.IState;
 import gem.simulation.state.ICell.CellState;
 import gem.simulation.state.neighbor_topology.INeighborTopology;
-import gem.talk_to_outside_world.validation.SimpleValidationBoardState;
+import gem.talk_to_outside_world.validation.JsonLogger;
 import gem.ui.UserDidNotConfirmException;
 import gem.ui.board_panel.ICellChangeAction;
 
@@ -128,6 +128,9 @@ public class ConwayBoard extends AbstractBoard {
 		history.clear();
 		notifyBoardResetListeners();
 	}
+	public void clearSelection() {
+		setCurrentState(currentState.getCopyWithClearedSelection());
+	}
 	@Override
 	public synchronized void clearCellTypeFromCurrentState(CellState state) {
 		setCurrentState(currentState.getCopyWithClearedCellType(state));
@@ -155,7 +158,7 @@ public class ConwayBoard extends AbstractBoard {
 		setCurrentState(stateInClipboard.deserialize());
 	}
 	public synchronized void loadCurrentStateFromFile(File file) {
-		setCurrentState(SimpleValidationBoardState.conwayStateFromJsonFile(file));
+		setCurrentState((AbstractConwayState)JsonLogger.readStateFromFile(file));
 	}
 	
 	@Override

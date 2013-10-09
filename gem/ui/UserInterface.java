@@ -34,7 +34,6 @@ import gem.simulation.state.IState;
 import gem.simulation.state.ICell.CellState;
 import gem.talk_to_outside_world.RandomDotOrgRandomNumberSource;
 import gem.talk_to_outside_world.validation.JsonLogger;
-import gem.talk_to_outside_world.validation.SimpleValidationBoardState;
 import gem.ui.board_panel.BoardPanel;
 import gem.ui.board_panel.IMouseLeftBoardListener;
 import gem.ui.board_panel.ICellTypeSelectionChangedListener;
@@ -900,7 +899,7 @@ public class UserInterface {
 				int userChose = fileChooser.showSaveDialog(mainFrame);
 				if(userChose == JFileChooser.APPROVE_OPTION) {
 					File file = fileChooser.getSelectedFile();
-					JsonLogger.writeJsonToFile(file, new SimpleValidationBoardState(simulator.getBoard().getCurrentState()).toJson());
+					JsonLogger.writeStateToFile(file, Global.simulator.getBoard().getCurrentState());
 				}
 		
 			} catch(Exception ex) {ex.printStackTrace();}
