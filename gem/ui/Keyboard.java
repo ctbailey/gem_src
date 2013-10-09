@@ -1,6 +1,5 @@
 package gem.ui;
 
-import gem.Debug;
 import gem.Global;
 
 import java.awt.event.ActionEvent;

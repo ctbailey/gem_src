@@ -179,8 +179,9 @@ public abstract class AbstractConwayState extends AbstractState {
 			for(int y = 0; y < getHeight(); y++) {
 				ICell currentCell = getCell(x,y);
 				CellState currentCellState = currentCell.getState();
-				if(currentCellState == stateToRandomize
-						|| currentCellState == CellState.DEAD) {
+				if((currentCellState == stateToRandomize
+						|| currentCellState == CellState.DEAD)
+					&& currentCell.isSelected()) {
 					randomlyGeneratedCells[x][y] = (AbstractConwayCell) currentCell.getModifiedCopy((getRandomCellState(randomNumberSource, threshold, stateToRandomize)));
 				} else {
 					randomlyGeneratedCells[x][y] = (AbstractConwayCell) currentCell.deepCopy();

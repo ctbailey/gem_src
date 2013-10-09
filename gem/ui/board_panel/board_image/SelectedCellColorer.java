@@ -2,13 +2,14 @@ package gem.ui.board_panel.board_image;
 
 import gem.Global;
 import gem.simulation.board.BoardDimensions;
+import gem.simulation.board.IBoardResetListener;
 import gem.simulation.board.IBoardSizeChangedListener;
 import gem.ui.board_panel.BoardPanel;
 import gem.ui.board_panel.CellChangeActions.SelectionAction;
 import gem.ui.board_panel.ICellChangeAction;
 import gem.ui.board_panel.ICellChangeActionListener;
 
-public class SelectedCellColorer extends AbstractStateRenderer implements ICellChangeActionListener, IBoardSizeChangedListener {
+public class SelectedCellColorer extends AbstractStateRenderer implements ICellChangeActionListener, IBoardSizeChangedListener, IBoardResetListener {
 	private static final int SELECTED_RED = 255;
 	private static final int SELECTED_GREEN = 0;
 	private static final int SELECTED_BLUE = 0;
@@ -23,6 +24,7 @@ public class SelectedCellColorer extends AbstractStateRenderer implements ICellC
 		BoardDimensions dimensions = Global.simulator.getBoard().getCurrentState().getDimensions();
 		pixelWrapper = new PixelWrapper(dimensions.getWidth(), dimensions.getHeight());
 		Global.simulator.getBoard().addBoardSizeChangedListener(this);
+		Global.simulator.getBoard().addBoardResetListener(this);
 		boardPanel.addCellChangeActionListener(this);
 	}
 
@@ -71,6 +73,13 @@ public class SelectedCellColorer extends AbstractStateRenderer implements ICellC
 	@Override
 	public void wasMadeSpurious(IStateRenderer replacement) {
 		Global.simulator.getBoard().removeBoardSizeChangedListener(this);
+		Global.simulator.getBoard().removeBoardResetListener(this);
 		Global.userInterface.boardPanel.removeCellChangeActionListener(this);
+	}
+
+	@Override
+	public void boardWasReset() {
+		pixelWrapper = new PixelWrapper(pixelWrapper.getImageWidth(), pixelWrapper.getImageHeight());
+		setLatestImage(pixelWrapper.toImage());
 	}
 }
