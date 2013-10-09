@@ -30,6 +30,7 @@ import gem.simulation.state.ConwaySerializedState;
 import gem.simulation.state.ConwayState;
 import gem.simulation.state.IState;
 import gem.simulation.state.ICell.CellState;
+import gem.simulation.state.neighbor_topology.INeighborGraph;
 import gem.simulation.state.neighbor_topology.INeighborTopology;
 import gem.talk_to_outside_world.validation.JsonLogger;
 import gem.ui.UserDidNotConfirmException;
@@ -216,7 +217,8 @@ public class ConwayBoard extends AbstractBoard {
 	@Override
 	public void neighborTopologyChanged(INeighborTopology newTopology) {
 		BoardDimensions currentDimensions = currentState.getDimensions();
-		resetToState(currentState.createDefault(currentDimensions, newTopology.createGraphWithThisTopology(currentDimensions)));
+		INeighborGraph g = newTopology.createGraphWithThisTopology(currentDimensions);
+		resetToState(currentState.getModifiedCopy(g));
 	}
 	
 	// User interface

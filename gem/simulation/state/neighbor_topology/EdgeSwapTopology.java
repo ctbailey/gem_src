@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
 
+import gem.Global;
 import gem.simulation.Utility;
 import gem.simulation.board.BoardDimensions;
 
@@ -28,9 +29,9 @@ public class EdgeSwapTopology extends SmallWorldTopology {
 		Point[] nodes = Utility.toArray(graph.vertexSet());
 		Set<DefaultWeightedEdge> edgesAlreadyIteratedOver = new LinkedHashSet<DefaultWeightedEdge>();
 		for(Point p : nodes) {
-			//if(Global.simulator.getBoard().getCurrentState().getCell(p.x, p.y).isSelected()) {
+			if(Global.simulator.getBoard().getCurrentState().getCell(p.x, p.y).isSelected()) {
 				rewireSingleNode(p, dimensions, graph, edgesAlreadyIteratedOver);
-			//}
+			}
 		}
 	}
 	private void rewireSingleNode(Point p, BoardDimensions dimensions, INeighborGraph graph, Set<DefaultWeightedEdge> edgesAlreadyIteratedOver) {

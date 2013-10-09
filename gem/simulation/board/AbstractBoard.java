@@ -40,7 +40,7 @@ public abstract class AbstractBoard implements IBoard, ICellChangeActionListener
 	private List<IBoardWillIterateListener> boardWillIterateListeners = new ArrayList<IBoardWillIterateListener>();
 	private List<IBoardDidIterateListener> boardDidIterateListeners = new ArrayList<IBoardDidIterateListener>();
 	private List<IBoardResetListener> boardResetListeners = new ArrayList<IBoardResetListener>();
-	
+
 	public AbstractBoard() {
 		Global.topologyManager.addNeighborTopologyChangedListener(this);
 	}

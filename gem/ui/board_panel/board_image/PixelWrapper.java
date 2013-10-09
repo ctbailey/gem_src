@@ -18,6 +18,9 @@ public class PixelWrapper {
 		this.imageHeight = imageHeight;
 	}
 	
+	public void setColor(int x, int y, RGBA color) {
+		setColor(x, y, color.normalizedAlpha, color.red, color.blue, color.green);
+	}
 	public void setColor(int x, int y, int opacity, int red, int green, int blue) {
 		int pixel = (opacity << 24) | (red << 16) | (green << 8) | (blue);
 		int index = (y * imageWidth) + x;

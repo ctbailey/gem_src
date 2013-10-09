@@ -2,14 +2,11 @@ package gem.ui.board_panel.board_image;
 
 import gem.Global;
 import gem.simulation.board.BoardDimensions;
-import gem.simulation.board.IBoardResetListener;
-import gem.simulation.board.IBoardSizeChangedListener;
+import gem.simulation.board.IBoardStateChangedListener;
+import gem.simulation.state.IState;
 import gem.ui.board_panel.BoardPanel;
-import gem.ui.board_panel.CellChangeActions.SelectionAction;
-import gem.ui.board_panel.ICellChangeAction;
-import gem.ui.board_panel.ICellChangeActionListener;
 
-public class SelectedCellColorer extends AbstractStateRenderer implements ICellChangeActionListener, IBoardSizeChangedListener, IBoardResetListener {
+public class SelectedCellColorer extends AbstractStateRenderer implements IBoardStateChangedListener {
 	private static final int SELECTED_RED = 255;
 	private static final int SELECTED_GREEN = 0;
 	private static final int SELECTED_BLUE = 0;
@@ -23,19 +20,10 @@ public class SelectedCellColorer extends AbstractStateRenderer implements ICellC
 		super(preferredOpacity);
 		BoardDimensions dimensions = Global.simulator.getBoard().getCurrentState().getDimensions();
 		pixelWrapper = new PixelWrapper(dimensions.getWidth(), dimensions.getHeight());
-		Global.simulator.getBoard().addBoardSizeChangedListener(this);
-		Global.simulator.getBoard().addBoardResetListener(this);
-		boardPanel.addCellChangeActionListener(this);
+		Global.simulator.getBoard().addBoardStateChangedListener(this);
 	}
 
-	@Override
-	public void cellChangeActionPerformed(ICellChangeAction action, int cellX, int cellY) {
-		if(action instanceof SelectionAction) {
-			SelectionAction selectionAction = (SelectionAction)action;
-			colorCell(cellX, cellY, selectionAction.setSelectedTo);
-		}
-	}
-	private void colorCell(int x, int y, boolean isSelected) {
+	private RGBA getCellColor(boolean isSelected) {
 		int r;
 		int g;
 		int b;
@@ -51,13 +39,7 @@ public class SelectedCellColorer extends AbstractStateRenderer implements ICellC
 			b = UNSELECTED_BLUE;
 			a = 0;
 		}
-		pixelWrapper.setColor(x, y, a, r, g, b);
-		setLatestImage(pixelWrapper.toImage());
-	}
-	
-	@Override
-	public void boardSizeChanged(BoardDimensions newBoardDimensions) {
-		pixelWrapper = new PixelWrapper(newBoardDimensions.getWidth(), newBoardDimensions.getHeight());
+		return new RGBA(r,g,b,a);
 	}
 
 	@Override
@@ -72,14 +54,17 @@ public class SelectedCellColorer extends AbstractStateRenderer implements ICellC
 
 	@Override
 	public void wasMadeSpurious(IStateRenderer replacement) {
-		Global.simulator.getBoard().removeBoardSizeChangedListener(this);
-		Global.simulator.getBoard().removeBoardResetListener(this);
-		Global.userInterface.boardPanel.removeCellChangeActionListener(this);
+		Global.simulator.getBoard().removeBoardStateChangedListener(this);
 	}
 
 	@Override
-	public void boardWasReset() {
-		pixelWrapper = new PixelWrapper(pixelWrapper.getImageWidth(), pixelWrapper.getImageHeight());
-		setLatestImage(pixelWrapper.toImage());
+	public void boardStateChanged(IState newState, int newNumberOfIterations) {
+		PixelWrapper wrapper = new PixelWrapper(newState.getWidth(), newState.getHeight());
+		for(int x = 0; x < newState.getWidth(); x++) {
+			for(int y = 0; y < newState.getHeight(); y++) {
+				wrapper.setColor(x, y, getCellColor(newState.getCell(x,y).isSelected()));
+			}
+		}
+		setLatestImage(wrapper.toImage());
 	}
 }

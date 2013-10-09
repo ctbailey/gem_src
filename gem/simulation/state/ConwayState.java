@@ -88,4 +88,8 @@ public final class ConwayState extends AbstractConwayState {
 		}
 		return sb.toString();
 	}
+	@Override
+	public AbstractConwayState getModifiedCopy(INeighborGraph g) {
+		return new ConwayState(copyCells(), g);
+	}
 }
