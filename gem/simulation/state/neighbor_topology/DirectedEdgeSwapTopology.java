@@ -11,16 +11,16 @@ import gem.Global;
 import gem.simulation.Utility;
 import gem.simulation.board.BoardDimensions;
 
-public class EdgeSwapTopology extends SmallWorldTopology {
+public class DirectedEdgeSwapTopology extends SmallWorldTopology {
 	private final float rewiringProbability;
 	private static final Random randomNumberGenerator = new Random();
-	public EdgeSwapTopology(float rewiringProbability) {
+	public DirectedEdgeSwapTopology(float rewiringProbability) {
 		this.rewiringProbability = rewiringProbability; 
 	}
 	
 	@Override
 	protected INeighborGraph createRegularGraph(BoardDimensions dimensions) {
-		return new UndirectedMooreTopology().createGraphWithThisTopology(dimensions);
+		return new DirectedMooreTopology().createGraphWithThisTopology(dimensions);
 	}
 
 	@Override
@@ -29,13 +29,13 @@ public class EdgeSwapTopology extends SmallWorldTopology {
 		Point[] nodes = Utility.toArray(graph.vertexSet());
 		Set<DefaultWeightedEdge> edgesAlreadyIteratedOver = new LinkedHashSet<DefaultWeightedEdge>();
 		for(Point p : nodes) {
-			if(Global.simulator.getBoard().getCurrentState().getCell(p.x, p.y).isSelected()) {
+			//if(Global.simulator.getBoard().getCurrentState().getCell(p.x, p.y).isSelected()) {
 				rewireSingleNode(p, dimensions, graph, edgesAlreadyIteratedOver);
-			}
+			//}
 		}
 	}
 	private void rewireSingleNode(Point p, BoardDimensions dimensions, INeighborGraph graph, Set<DefaultWeightedEdge> edgesAlreadyIteratedOver) {
-		DefaultWeightedEdge[] edges = Utility.toArray(graph.edgesOf(p));
+		DefaultWeightedEdge[] edges = Utility.toArray(graph.getOutgoingInfluence(p));
 		for(int i = 0; i < edges.length; i++) {
 			DefaultWeightedEdge e = edges[i];
 			if(!edgesAlreadyIteratedOver.contains(e)) {
@@ -71,20 +71,13 @@ public class EdgeSwapTopology extends SmallWorldTopology {
 		// source1 -> target2
 		// source2 -> target1
 		
-		// Technically since the graph
-		// is undirected, there aren't
-		// any sources or targets,
-		// but it's easier to
-		// think about if we pretend
-		// there are.
-		
 		g.removeEdge(edge1);
 		g.removeEdge(edge2);
 		g.addEdge(source1, target2);
 		g.addEdge(source2, target1);
 	}
 	private DefaultWeightedEdge getRandomEdge(Point node, INeighborGraph g) {
-		Set<DefaultWeightedEdge> edges = g.edgesOf(node);
+		Set<DefaultWeightedEdge> edges = g.getOutgoingInfluence(node);
 		int randomIndex = randomNumberGenerator.nextInt(edges.size());
 		int i = 0;
 		for(DefaultWeightedEdge e : edges) {
@@ -107,4 +100,5 @@ public class EdgeSwapTopology extends SmallWorldTopology {
 		return graph.areNeighbors(source1, target2) // source1 can't already be a neighbor of target2 (or swapping would add an extra edge between source1 and target 2) 
 				|| graph.areNeighbors(source2, target1); // ditto
 	}
+
 }

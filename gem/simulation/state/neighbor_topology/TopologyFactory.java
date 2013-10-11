@@ -1,15 +1,16 @@
 package gem.simulation.state.neighbor_topology;
 
 public class TopologyFactory {
-	public static INeighborTopology createTopology(boolean isDirected, boolean isSmallWorld, float rewiringProbability) {
+	private static final boolean USE_DIRECTED = true;
+	public static INeighborTopology createTopology(boolean isSmallWorld, float rewiringProbability) {
 		if(isSmallWorld) {
-			if(isDirected) {
-				return new DirectedWattsStrogatzTopology(rewiringProbability, false);
+			if(USE_DIRECTED) {
+				return new DirectedEdgeSwapTopology(rewiringProbability);
 			} else {
 				return new EdgeSwapTopology(rewiringProbability);
 			}
 		} else {
-			if(isDirected) {
+			if(USE_DIRECTED) {
 				return new DirectedMooreTopology();
 			} else {
 				return new UndirectedMooreTopology();

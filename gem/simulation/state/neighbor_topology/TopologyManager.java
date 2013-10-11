@@ -88,7 +88,7 @@ public class TopologyManager extends AbstractTopologyManager {
 						smallWorldProbability = 0;
 						smallWorldMenuItem.setText(smallWorldMenuItemText);
 					}
-					setTopology(TopologyFactory.createTopology(false, isNowSmallWorld, smallWorldProbability));
+					setTopology(TopologyFactory.createTopology(isNowSmallWorld, smallWorldProbability));
 				} catch(UserDidNotConfirmException ex) {
 					// setSelected() doesn't trigger a new action event, so doesn't
 					// result in another call to actionPerformed(),
