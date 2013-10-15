@@ -14,6 +14,7 @@ import gem.simulation.board.BoardDimensions;
 public class EdgeSwapTopology extends SmallWorldTopology {
 	private final float rewiringProbability;
 	private static final Random randomNumberGenerator = new Random();
+	private static final boolean ONLY_REWIRE_SELECTED_CELLS = false;
 	public EdgeSwapTopology(float rewiringProbability) {
 		this.rewiringProbability = rewiringProbability; 
 	}
@@ -29,7 +30,8 @@ public class EdgeSwapTopology extends SmallWorldTopology {
 		Point[] nodes = Utility.toArray(graph.vertexSet());
 		Set<DefaultWeightedEdge> edgesAlreadyIteratedOver = new LinkedHashSet<DefaultWeightedEdge>();
 		for(Point p : nodes) {
-			if(Global.simulator.getBoard().getCurrentState().getCell(p.x, p.y).isSelected()) {
+			if(Global.simulator.getBoard().getCurrentState().getCell(p.x, p.y).isSelected()
+				|| !ONLY_REWIRE_SELECTED_CELLS) {
 				rewireSingleNode(p, dimensions, graph, edgesAlreadyIteratedOver);
 			}
 		}

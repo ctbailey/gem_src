@@ -24,8 +24,8 @@ import gem.simulation.state.neighbor_topology.INeighborGraph;
 import java.awt.Point;
 
 public abstract class AbstractState implements IState {
-	public static final int DEFAULT_WIDTH = 50;
-	public static final int DEFAULT_HEIGHT = 50;
+	public static final int DEFAULT_WIDTH = 250;
+	public static final int DEFAULT_HEIGHT = 250;
 	
 	protected INeighborGraph neighborGraph;
 	

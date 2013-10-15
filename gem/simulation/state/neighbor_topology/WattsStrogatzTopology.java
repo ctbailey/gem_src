@@ -5,8 +5,10 @@ import java.util.Set;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
 
+import gem.Global;
 import gem.simulation.Utility;
 import gem.simulation.board.BoardDimensions;
+import gem.simulation.state.ICell;
 
 public class WattsStrogatzTopology extends SmallWorldTopology {
 	private final float rewiringProbability;
@@ -28,16 +30,26 @@ public class WattsStrogatzTopology extends SmallWorldTopology {
 		edges.toArray(edgeArray);
 		
 		for(int i = 0; i < edgeArray.length; i++) {
-			if(Math.random() <= rewiringProbability) {
-				Point newTarget = Utility.getRandomPointOnBoard(dimensions);
-				Point existingSource = graph.getEdgeSource(edgeArray[i]);
-				while(!pointIsValidRewiringLocationForSmallWorldConnection(newTarget, existingSource, graph)) {
-					// Select another random point until you get one that's valid
-					newTarget = Utility.getRandomPointOnBoard(dimensions);
-				}
-				graph.removeEdge(edgeArray[i]);
-				graph.addEdge(existingSource, newTarget);
+			Point source = graph.getEdgeSource(edgeArray[i]);
+			Point target = graph.getEdgeTarget(edgeArray[i]);
+			ICell sourceCell = Global.simulator.getBoard().getCurrentState().getCell(source.x, source.y);
+			ICell targetCell = Global.simulator.getBoard().getCurrentState().getCell(target.x, target.y);
+			if(sourceCell.isSelected() || targetCell.isSelected()
+					|| !INeighborTopology.REWIRE_ONLY_SELECTED_CELLS) {
+				rewireEdge(edgeArray[i], dimensions, graph);
 			}
+		}
+	}
+	private void rewireEdge(DefaultWeightedEdge e, BoardDimensions dimensions, INeighborGraph graph) {
+		if(Math.random() <= rewiringProbability) {
+			Point newTarget = Utility.getRandomPointOnBoard(dimensions);
+			Point existingSource = graph.getEdgeSource(e);
+			while(!pointIsValidRewiringLocationForSmallWorldConnection(newTarget, existingSource, graph)) {
+				// Select another random point until you get one that's valid
+				newTarget = Utility.getRandomPointOnBoard(dimensions);
+			}
+			graph.removeEdge(e);
+			graph.addEdge(existingSource, newTarget);
 		}
 	}
 	private static boolean pointIsValidRewiringLocationForSmallWorldConnection(Point newTarget, Point oldSource, INeighborGraph g) {

@@ -29,9 +29,10 @@ public class DirectedEdgeSwapTopology extends SmallWorldTopology {
 		Point[] nodes = Utility.toArray(graph.vertexSet());
 		Set<DefaultWeightedEdge> edgesAlreadyIteratedOver = new LinkedHashSet<DefaultWeightedEdge>();
 		for(Point p : nodes) {
-			//if(Global.simulator.getBoard().getCurrentState().getCell(p.x, p.y).isSelected()) {
+			if(Global.simulator.getBoard().getCurrentState().getCell(p.x, p.y).isSelected()
+					|| !REWIRE_ONLY_SELECTED_CELLS) {
 				rewireSingleNode(p, dimensions, graph, edgesAlreadyIteratedOver);
-			//}
+			}
 		}
 	}
 	private void rewireSingleNode(Point p, BoardDimensions dimensions, INeighborGraph graph, Set<DefaultWeightedEdge> edgesAlreadyIteratedOver) {

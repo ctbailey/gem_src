@@ -1,7 +1,7 @@
 package gem.simulation.state.neighbor_topology;
 
 public class TopologyFactory {
-	private static final boolean USE_DIRECTED = true;
+	private static final boolean USE_DIRECTED = false;
 	public static INeighborTopology createTopology(boolean isSmallWorld, float rewiringProbability) {
 		if(isSmallWorld) {
 			if(USE_DIRECTED) {

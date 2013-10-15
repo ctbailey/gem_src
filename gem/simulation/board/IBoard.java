@@ -24,7 +24,6 @@ import gem.simulation.rules.IRulesChangedListener;
 import gem.simulation.state.IState;
 import gem.simulation.state.ICell.CellState;
 
-import java.awt.Point;
 import java.io.File;
 
 import javax.swing.JFrame;

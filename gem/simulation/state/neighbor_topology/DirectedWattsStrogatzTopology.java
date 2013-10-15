@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
 
+import gem.Global;
 import gem.simulation.Utility;
 import gem.simulation.board.BoardDimensions;
 
@@ -25,11 +26,17 @@ public class DirectedWattsStrogatzTopology extends SmallWorldTopology {
 		Set<Point> points = graph.vertexSet();
 		if(rewireIncomingEdges) {
 			for(Point p : points) {
-				rewireIncomingEdges(p, graph, dimensions);
+				if(Global.simulator.getBoard().getCurrentState().getCell(p.x, p.y).isSelected()
+						|| !REWIRE_ONLY_SELECTED_CELLS) {
+					rewireIncomingEdges(p, graph, dimensions);
+				}
 			}
 		} else {
 			for(Point p : points) {
-				rewireOutgoingEdges(p, graph, dimensions);
+				if(Global.simulator.getBoard().getCurrentState().getCell(p.x, p.y).isSelected()
+						|| !REWIRE_ONLY_SELECTED_CELLS) {
+					rewireOutgoingEdges(p, graph, dimensions);
+				}
 			}
 		}
 	}

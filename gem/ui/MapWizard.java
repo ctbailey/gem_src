@@ -704,7 +704,6 @@ public class MapWizard {
 			 * 
 			 */
 			
-			int index = 0; // Used to find the appropriate index in the dimensional array
 		    int alternator = 0; // Alternates between 0 and 1 (determines cell color)
 		    checkerboardArray = new int[rows*columns]; 
 		    	// The 1-dimensional array must have as many locations
@@ -723,14 +722,12 @@ public class MapWizard {
 		        	
 				        case 0:
 							checkerboardArray[(slice-j)+(j*columns)] = (100 << 24) | (255 << 16) | (255 << 8) | 255;
-							index++;
 							break;	
-						
 						case 1:
 							checkerboardArray[(slice-j)+(j*columns)] = (100 << 24) | (0 << 16) | (0 << 8) | 0;
-							index++;
 							break;
-		        
+						default:
+							throw new RuntimeException("Shouldn't have gotten here.");
 		        	}
 						
 		        }
