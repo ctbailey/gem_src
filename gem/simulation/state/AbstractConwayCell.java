@@ -19,9 +19,12 @@
 
 package gem.simulation.state;
 
+import java.io.Serializable;
+
 import gem.simulation.board.InvalidCellStateException;
 
-public abstract class AbstractConwayCell implements ICell {
+public abstract class AbstractConwayCell implements ICell, Serializable {
+	private static final long serialVersionUID = 1L;
 	protected static final CellState DEFAULT_STATE = CellState.DEAD;
 	private boolean isSelected;
 	private CellState cellState;

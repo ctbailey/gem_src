@@ -35,7 +35,7 @@ public class WattsStrogatzTopology extends SmallWorldTopology {
 			ICell sourceCell = Global.simulator.getBoard().getCurrentState().getCell(source.x, source.y);
 			ICell targetCell = Global.simulator.getBoard().getCurrentState().getCell(target.x, target.y);
 			if(sourceCell.isSelected() || targetCell.isSelected()
-					|| !INeighborTopology.REWIRE_ONLY_SELECTED_CELLS) {
+					|| !REWIRE_ONLY_SELECTED_CELLS) {
 				rewireEdge(edgeArray[i], dimensions, graph);
 			}
 		}

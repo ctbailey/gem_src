@@ -28,7 +28,7 @@ import gem.ui.UserInterface;
 public class Global {
 	static final long serialVersionUID = 6;
 	
-	public static final boolean IS_PUBLIC_BUILD = false;
+	public static final boolean IS_PUBLIC_BUILD = true;
 	public static Simulator simulator;
 	public static UserInterface userInterface;
 	public static MapWizard mapWizard;

@@ -28,7 +28,6 @@ import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 
 import java.util.ArrayList;
@@ -473,25 +472,13 @@ public class BoardPanel extends AbstractBoardPanel {
 	// Save and load methods
 	public void save(ObjectOutputStream output) {
 		
-		Object[] savedBoardPanel = new Object[2];
+		Object[] savedBoardPanel = new Object[1];
 		
-		savedBoardPanel[0] = boardImageSource;
-		savedBoardPanel[1] = getPreferredSize();
+		boardImageSource.save(output);
+		savedBoardPanel[0] = getPreferredSize();
 				
-		try {
-			
-			if(map != null) {
-				savedBoardPanel[3] = Boolean.valueOf(true); // when the program loads this save again, try and read an image after this array
-			} else {
-				savedBoardPanel[3] = Boolean.valueOf(false); // do not try and read an image after loading this array
-			}
-					
+		try {		
 			output.writeObject(savedBoardPanel);
-			
-			if(map != null) {
-				ImageIO.write(map,"jpg",output);
-			}
-			
 		}catch(Exception ex) {
 			ex.printStackTrace();
 		}
@@ -504,25 +491,12 @@ public class BoardPanel extends AbstractBoardPanel {
 			AbstractBoardImageSource loadedDisplayBoard = (AbstractBoardImageSource) loadedBoardPanel[0];
 			Dimension loadedPreferredSize = (Dimension) loadedBoardPanel[1];
 			
-			Boolean readImage = (Boolean) loadedBoardPanel[3];
-			
-			BufferedImage loadedMap = null;
-			
-			if(readImage.booleanValue()) {
-				loadedMap = (BufferedImage) ImageIO.read(input);
-			}
-			
 			setBoardImageSource(loadedDisplayBoard);
 			setPreferredSize(loadedPreferredSize);
-			
-			if(loadedMap != null) {
-				map = loadedMap;
-			}
 			revalidate();
 		} catch(Exception ex) {
 			ex.printStackTrace();
 		}
-		
 	}
 
 	

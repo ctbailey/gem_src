@@ -12,12 +12,15 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.*;
 
 public class ChainBoardImageSource extends AbstractBoardImageSource implements IImageUpdatedListener {
+	private static final long serialVersionUID = 1L;
 	private float preferredOpacity;
 	private static final float DEFAULT_PREFERRED_OPACITY = 1.0f;
 	
@@ -353,5 +356,12 @@ public class ChainBoardImageSource extends AbstractBoardImageSource implements I
 		}
 		
 	}
-	
+	@Override
+	public void save(ObjectOutputStream output) {
+		throw new RuntimeException("Not implemented");
+	}
+	@Override
+	public void load(ObjectInputStream input) {
+		throw new RuntimeException("Not implemented");
+	}
 }

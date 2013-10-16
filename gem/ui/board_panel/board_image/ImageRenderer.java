@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 import gem.Global;
 
 public class ImageRenderer extends AbstractStateRenderer {
+	private static final long serialVersionUID = 1L;
 	private BufferedImage image;
 	public enum ImageDisplaySettings {
 		STRETCH_TO_FIT_BOARD, SCALE_TO_FILL_BOARD

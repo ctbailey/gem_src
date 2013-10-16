@@ -5,6 +5,7 @@ import gem.Global;
 import java.awt.Point;
 
 public class OutgoingInfluenceCellHighlighter extends CellHighlighter {
+	private static final long serialVersionUID = 1L;
 	private static final float DEFAULT_NORMALIZED_PREFERRED_OPACITY = 0.5f;
 	private static final int DEFAULT_RED = 0;
 	private static final int DEFAULT_GREEN = 255;

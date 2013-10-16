@@ -4,10 +4,12 @@ import gem.Global;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractStateRenderer implements IStateRenderer {
+public abstract class AbstractStateRenderer implements IStateRenderer, Serializable {
+	private static final long serialVersionUID = 1L;
 	private List<IImageUpdatedListener> imageUpdatedListeners;
 	private Image latestImage;
 	private float preferredOpacity = 1.0f;

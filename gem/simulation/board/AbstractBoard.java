@@ -27,13 +27,15 @@ import gem.simulation.state.neighbor_topology.INeighborTopologyChangedListener;
 import gem.ui.IMenuItemProvider;
 import gem.ui.board_panel.ICellChangeActionListener;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import static gem.Global.*;
 
-public abstract class AbstractBoard implements IBoard, ICellChangeActionListener, IMenuItemProvider, INeighborTopologyChangedListener {
+public abstract class AbstractBoard implements IBoard, ICellChangeActionListener, IMenuItemProvider, INeighborTopologyChangedListener, Serializable {
 	
+	private static final long serialVersionUID = 1L;
 	private List<IBoardStateChangedListener> boardStateChangedListeners = new ArrayList<IBoardStateChangedListener>(); 
 	private List<IRulesChangedListener> rulesChangedListeners = new ArrayList<IRulesChangedListener>();
 	private List<IBoardSizeChangedListener> boardSizeChangedListeners = new ArrayList<IBoardSizeChangedListener>();

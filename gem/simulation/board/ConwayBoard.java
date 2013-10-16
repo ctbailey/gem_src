@@ -196,7 +196,7 @@ public class ConwayBoard extends AbstractBoard {
 		history.push(currentState.serialize());
 		setCurrentState(abstractConwayState);
 	}
-	private synchronized void setCurrentState(AbstractConwayState newState) {
+	public synchronized void setCurrentState(AbstractConwayState newState) {
 		currentState = newState;
 		notifyBoardStateChangedListeners(newState, currentNumberOfIterations);
 	}

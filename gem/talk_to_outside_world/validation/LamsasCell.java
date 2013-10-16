@@ -24,7 +24,7 @@ import gem.simulation.state.AbstractConwayCell;
 import gem.simulation.state.ICell;
 
 public class LamsasCell extends AbstractConwayCell {
-	
+	private static final long serialVersionUID = 1L;
 	private final String id;
 	private final String oldNumber;
 	private final boolean aux;

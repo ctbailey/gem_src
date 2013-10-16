@@ -7,6 +7,7 @@ import gem.simulation.state.IState;
 import gem.ui.board_panel.BoardPanel;
 
 public class SelectedCellColorer extends AbstractStateRenderer implements IBoardStateChangedListener {
+	private static final long serialVersionUID = 1L;
 	private static final int SELECTED_RED = 255;
 	private static final int SELECTED_GREEN = 0;
 	private static final int SELECTED_BLUE = 0;

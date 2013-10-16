@@ -10,11 +10,12 @@ import org.jgrapht.graph.DefaultWeightedEdge;
 import gem.Global;
 import gem.simulation.Utility;
 import gem.simulation.board.BoardDimensions;
+import gem.simulation.state.ICell.CellState;
+import gem.simulation.state.IState;
 
 public class EdgeSwapTopology extends SmallWorldTopology {
 	private final float rewiringProbability;
 	private static final Random randomNumberGenerator = new Random();
-	private static final boolean ONLY_REWIRE_SELECTED_CELLS = false;
 	public EdgeSwapTopology(float rewiringProbability) {
 		this.rewiringProbability = rewiringProbability; 
 	}
@@ -31,7 +32,7 @@ public class EdgeSwapTopology extends SmallWorldTopology {
 		Set<DefaultWeightedEdge> edgesAlreadyIteratedOver = new LinkedHashSet<DefaultWeightedEdge>();
 		for(Point p : nodes) {
 			if(Global.simulator.getBoard().getCurrentState().getCell(p.x, p.y).isSelected()
-				|| !ONLY_REWIRE_SELECTED_CELLS) {
+				|| !REWIRE_ONLY_SELECTED_CELLS) {
 				rewireSingleNode(p, dimensions, graph, edgesAlreadyIteratedOver);
 			}
 		}
@@ -98,9 +99,19 @@ public class EdgeSwapTopology extends SmallWorldTopology {
 		throw new RuntimeException("Random index was too big.");
 	}
 	private boolean isValidSwap(Point source1, Point source2, Point target1, Point target2, INeighborGraph graph) {
-		return  !swapWouldResultInLoops(source1, source2, target1, target2, graph)
+		return  !oneOfThePointsIsCurrentlyImpassable(source1, source2, target1, target2)
+				&& !swapWouldResultInLoops(source1, source2, target1, target2, graph)
 				&& !swapWouldAddExtraEdgeBetweenNodes(source1, source2, target1, target2, graph);
 	}
+	private boolean oneOfThePointsIsCurrentlyImpassable(Point source1,
+			Point source2, Point target1, Point target2) {
+		IState currentState = Global.simulator.getBoard().getCurrentState();
+		return currentState.getCell(source1.x, source1.y).getState() == CellState.IMPASSABLE
+				|| currentState.getCell(source2.x, source2.y).getState() == CellState.IMPASSABLE
+				|| currentState.getCell(target1.x, target1.y).getState() == CellState.IMPASSABLE
+				|| currentState.getCell(target2.x, target2.y).getState() == CellState.IMPASSABLE;
+	}
+
 	private boolean swapWouldResultInLoops(Point source1, Point source2, Point target1, Point target2, INeighborGraph graph) {
 		return source1.equals(target2) // No loops (source1 will be connected to target 2 in the swap)
 				|| source2.equals(target1); // Ditto

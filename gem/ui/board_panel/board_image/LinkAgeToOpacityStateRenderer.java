@@ -36,6 +36,7 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
 public class LinkAgeToOpacityStateRenderer extends BoardStateChangedRenderer implements IBoardDidIterateListener, IBoardResetListener {
+	private static final long serialVersionUID = 1L;
 	private static final int IMPASSABLE_RED = 175;
 	private static final int IMPASSABLE_BLUE = 175;
 	private static final int IMPASSABLE_GREEN = 175;

@@ -20,13 +20,16 @@
 package gem.ui.board_panel.board_image;
 
 
+import gem.talk_to_outside_world.AutomatonSerializable;
 import gem.ui.IMenuItemProvider;
 
 import java.awt.Image;
+import java.io.Serializable;
 import java.util.*;
 
 
-public abstract class AbstractBoardImageSource implements IBoardImageSource, IMenuItemProvider {
+public abstract class AbstractBoardImageSource implements IBoardImageSource, IMenuItemProvider, Serializable, AutomatonSerializable {
+	private static final long serialVersionUID = 1L;
 	private List<IBoardImageChangedListener> boardImageChangedListeners;
 	private Image boardImage;
 	

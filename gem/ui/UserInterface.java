@@ -86,12 +86,13 @@ public class UserInterface {
 	// Constants
 	private static final String ABOUT_MESSAGE = 
 			"GEM: The Geographic Modeler" + "\n" +
-			"July, 2013" + "\n" +
+			"October, 2013" + "\n" +
 			"Written by C. Thomas Bailey, University of Georgia" + "\n" +
 			"ctbailey@uga.edu" + "\n" + "\n" +
 			"GEM is free software: you can redistribute it and/or modify" + "\n" +
 			"it under the terms of the GNU GPL v3, or" + "\n" +
-			"(at your option) any later version." + "\n" + "\n" +
+			"(at your option) any later version. Source code is available" +"\n" + 
+			"at github.com/ctbailey/gem_src"+ "\n" + "\n" +
 			"GEM is distributed in the hope that it will be useful," + "\n" +
 			"but WITHOUT ANY WARRANTY; without even the implied warranty of" + "\n" +
 			"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the" + "\n" +
@@ -935,9 +936,9 @@ public class UserInterface {
 			ObjectOutputStream output = new ObjectOutputStream(fileOut);
 			
 			simulator.save(output);
-			boardPanel.save(output);
-			geography.save(output);
-			metadata.save(output);
+			//boardPanel.save(output);
+			//geography.save(output);
+			//metadata.save(output);
 			
 			output.close();
 		
@@ -956,9 +957,9 @@ public class UserInterface {
 			ObjectInputStream input = new ObjectInputStream(fileIn);
 			
 			simulator.load(input);
-			boardPanel.load(input);
-			geography.load(input);
-			metadata.load(input);
+			//boardPanel.load(input);
+			//geography.load(input);
+			//metadata.load(input);
 			
 			input.close();
 		

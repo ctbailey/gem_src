@@ -21,6 +21,8 @@ package gem.simulation.board;
 
 
 public abstract class ProbabilisticMetadataBoard extends AbstractBoard {
+
+	private static final long serialVersionUID = 1L;
 /*
 	public class ProbabilisticRuleSet extends AutomatonRuleSet implements Serializable {
 

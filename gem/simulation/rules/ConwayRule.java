@@ -35,6 +35,7 @@ import java.util.Set;
 import javax.swing.*;
 
 public class ConwayRule extends AbstractRuleSet {
+	private static final long serialVersionUID = 1L;
 	private final Set<Integer> birthConditions;
 	private final Set<Integer> lifeConditions;
 	private static final int MAX_LIFE_CONDITIONS_USER_CAN_CHOOSE = 8;

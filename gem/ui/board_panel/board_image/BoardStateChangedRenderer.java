@@ -7,6 +7,7 @@ import gem.simulation.state.IState;
 import java.awt.Image;
 
 public abstract class BoardStateChangedRenderer extends AbstractStateRenderer implements IBoardStateChangedListener {
+	private static final long serialVersionUID = 1L;
 	public BoardStateChangedRenderer(float preferredOpacity) {
 		super(preferredOpacity);
 		Global.simulator.getBoard().addBoardStateChangedListener(this);

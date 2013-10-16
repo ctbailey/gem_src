@@ -22,6 +22,7 @@ package gem.ui.board_panel.board_image;
 import gem.simulation.state.IState;
 
 public class BinaryStateRenderer extends BoardStateChangedRenderer {
+	private static final long serialVersionUID = 1L;
 	private static final int IMPASSABLE_RED = 175;
 	private static final int IMPASSABLE_BLUE = 175;
 	private static final int IMPASSABLE_GREEN = 175;

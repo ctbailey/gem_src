@@ -10,6 +10,7 @@ import gem.ui.board_panel.IMouseMovedIntoNewCellListener;
 import gem.ui.board_panel.board_image.AbstractStateRenderer;
 
 public abstract class CellHighlighter extends AbstractStateRenderer implements IMouseMovedIntoNewCellListener, IMouseLeftBoardListener {
+	private static final long serialVersionUID = 1L;
 	private int neighborRedValue;
 	private int neighborGreenValue;
 	private int neighborBlueValue;

@@ -19,11 +19,14 @@
 
 package gem.simulation.rules;
 
+import java.io.Serializable;
+
 import gem.ui.UserDidNotConfirmException;
 
 import javax.swing.JFrame;
 
-public abstract class AbstractRuleSet {
+public abstract class AbstractRuleSet implements Serializable {
+	private static final long serialVersionUID = 1L;
 	public abstract AbstractRuleSet getRuleFromUserInput(JFrame mainFrame) throws UserDidNotConfirmException; 
 	public abstract String visualizeForUser();
 }

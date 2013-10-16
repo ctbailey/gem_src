@@ -26,7 +26,7 @@ import gem.simulation.state.ICell.CellState;
 import gem.simulation.state.neighbor_topology.INeighborGraph;
 
 public final class ConwayState extends AbstractConwayState {
-	
+	private static final long serialVersionUID = 1L;
 	public ConwayState(BoardDimensions dimensions) {
 		super(dimensions);
 	}

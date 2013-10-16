@@ -22,8 +22,10 @@ package gem.simulation.state;
 import gem.simulation.state.neighbor_topology.INeighborGraph;
 
 import java.awt.Point;
+import java.io.Serializable;
 
-public abstract class AbstractState implements IState {
+public abstract class AbstractState implements IState, Serializable {
+	private static final long serialVersionUID = 1L;
 	public static final int DEFAULT_WIDTH = 250;
 	public static final int DEFAULT_HEIGHT = 250;
 	

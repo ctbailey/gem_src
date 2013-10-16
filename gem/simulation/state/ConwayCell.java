@@ -2,6 +2,7 @@ package gem.simulation.state;
 
 
 public final class ConwayCell extends AbstractConwayCell {
+	private static final long serialVersionUID = 8775596459569785271L;
 	public ConwayCell(CellState state, boolean isSelected) {
 		super(state, isSelected);
 	}

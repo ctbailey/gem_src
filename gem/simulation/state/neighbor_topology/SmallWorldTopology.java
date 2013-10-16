@@ -8,6 +8,7 @@ import gem.Debug;
 import gem.simulation.board.BoardDimensions;
 
 public abstract class SmallWorldTopology implements INeighborTopology {
+	protected static final boolean REWIRE_ONLY_SELECTED_CELLS = true;
 	@Override
 	public INeighborGraph createGraphWithThisTopology(BoardDimensions dimensions) {
 		INeighborGraph graph = createRegularGraph(dimensions);

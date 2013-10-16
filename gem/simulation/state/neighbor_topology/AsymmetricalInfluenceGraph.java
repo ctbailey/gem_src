@@ -4,12 +4,12 @@ package gem.simulation.state.neighbor_topology;
 import gem.simulation.Utility;
 
 import java.awt.Point;
+import java.io.Serializable;
 import java.util.Set;
 
-import org.jgrapht.alg.DirectedNeighborIndex;
 import org.jgrapht.graph.*;
 
-public class AsymmetricalInfluenceGraph extends ListenableDirectedWeightedGraph<Point, DefaultWeightedEdge> implements INeighborGraph {
+public class AsymmetricalInfluenceGraph extends ListenableDirectedWeightedGraph<Point, DefaultWeightedEdge> implements INeighborGraph, Serializable {
 	private static final long serialVersionUID = 6;
 
 	/* Represents neighbor relationships that
@@ -17,11 +17,11 @@ public class AsymmetricalInfluenceGraph extends ListenableDirectedWeightedGraph<
 	 * where a may influence b, but not
 	 * be influenced by b.
 	 */
-	private DirectedNeighborIndex<Point, DefaultWeightedEdge> neighborIndex;
+	private SerializableDirectedNeighborIndex<Point, DefaultWeightedEdge> neighborIndex;
 	
 	public AsymmetricalInfluenceGraph() {
 		super(DefaultWeightedEdge.class);
-		neighborIndex = new DirectedNeighborIndex<Point, DefaultWeightedEdge>(this);
+		neighborIndex = new SerializableDirectedNeighborIndex<Point, DefaultWeightedEdge>(this);
 		this.addGraphListener(neighborIndex);
 	}
 	

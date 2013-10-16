@@ -21,9 +21,10 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
 public abstract class AbstractConwayState extends AbstractState {
-
+	private static final long serialVersionUID = 1L;
 	private AbstractConwayCell[][] cells;
 	public static final CellState DEFAULT_CELL_STATE = CellState.DEAD;
+	private static final boolean RANDOMIZE_ONLY_SELECTED_CELLS = true;
 	
 	public AbstractConwayState(BoardDimensions dimensions) {
 		this(dimensions, Global.topologyManager.createNeighborGraphWithCurrentTopology(dimensions));
@@ -181,7 +182,8 @@ public abstract class AbstractConwayState extends AbstractState {
 				CellState currentCellState = currentCell.getState();
 				if((currentCellState == stateToRandomize
 						|| currentCellState == CellState.DEAD)
-					//&& currentCell.isSelected()
+					&& (currentCell.isSelected() 
+						|| !RANDOMIZE_ONLY_SELECTED_CELLS)
 					) {
 					randomlyGeneratedCells[x][y] = (AbstractConwayCell) currentCell.getModifiedCopy((getRandomCellState(randomNumberSource, threshold, stateToRandomize)));
 				} else {

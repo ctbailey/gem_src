@@ -66,7 +66,7 @@ public class JsonLogger {
 		return json;
 	}
 	public static AbstractConwayState readStateFromFile(File file) {
-		String json = readJsonFromFile(file);
+  		String json = readJsonFromFile(file);
 		if(USE_ILKKA_FORMAT) {
 			Gson gson = new Gson();
 			SimpleValidationCell[] cells = gson.fromJson(json, SimpleValidationCell[].class);
