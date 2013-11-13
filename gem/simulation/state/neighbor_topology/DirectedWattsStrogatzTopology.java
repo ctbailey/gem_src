@@ -10,11 +10,11 @@ import gem.simulation.Utility;
 import gem.simulation.board.BoardDimensions;
 
 public class DirectedWattsStrogatzTopology extends SmallWorldTopology {
-	private final boolean rewireIncomingEdges;
+	private static final boolean REWIRE_INCOMING_EDGES = false;
 	private final float rewiringProbability;
-	public DirectedWattsStrogatzTopology(float rewiringProbability, boolean rewireIncomingEdges) {
+	public DirectedWattsStrogatzTopology(float rewiringProbability, boolean rewireOnlySelectedCells) {
+		super(rewireOnlySelectedCells);
 		this.rewiringProbability = rewiringProbability;
-		this.rewireIncomingEdges = rewireIncomingEdges;
 	}
 	@Override
 	protected INeighborGraph createRegularGraph(BoardDimensions dimensions) {
@@ -24,17 +24,17 @@ public class DirectedWattsStrogatzTopology extends SmallWorldTopology {
 	protected void rewireToSmallWorld(BoardDimensions dimensions,
 			INeighborGraph graph) {
 		Set<Point> points = graph.vertexSet();
-		if(rewireIncomingEdges) {
+		if(REWIRE_INCOMING_EDGES) {
 			for(Point p : points) {
 				if(Global.simulator.getBoard().getCurrentState().getCell(p.x, p.y).isSelected()
-						|| !REWIRE_ONLY_SELECTED_CELLS) {
+						|| !rewireOnlySelectedCells) {
 					rewireIncomingEdges(p, graph, dimensions);
 				}
 			}
 		} else {
 			for(Point p : points) {
 				if(Global.simulator.getBoard().getCurrentState().getCell(p.x, p.y).isSelected()
-						|| !REWIRE_ONLY_SELECTED_CELLS) {
+						|| !rewireOnlySelectedCells) {
 					rewireOutgoingEdges(p, graph, dimensions);
 				}
 			}
@@ -86,5 +86,9 @@ public class DirectedWattsStrogatzTopology extends SmallWorldTopology {
 	private static boolean pointIsValidRewiringLocationForOutgoingSmallWorldConnection(Point source, Point target, INeighborGraph g) {
 		return !source.equals(target) // equals() returns true if they have the same coordinates
 				&& !g.containsEdge(source, target);
+	}
+	@Override
+	public float getRewiringProbability() {
+		return rewiringProbability;
 	}
 }

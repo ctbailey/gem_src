@@ -40,4 +40,5 @@ public interface IState {
 	public ICell[] getCellsInfluencedByCellAt(int x, int y);
 	public Point[] getPointsThatInfluenceCellAt(int x, int y);
 	public Point[] getPointsInfluencedByCellAt(int x, int y);
+	public ICell[][] getCellsCopy();
 }

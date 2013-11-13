@@ -12,7 +12,8 @@ import gem.simulation.state.ICell;
 
 public class WattsStrogatzTopology extends SmallWorldTopology {
 	private final float rewiringProbability;
-	public WattsStrogatzTopology(float rewiringProbability) {
+	public WattsStrogatzTopology(float rewiringProbability, boolean rewireOnlySelectedCells) {
+		super(rewireOnlySelectedCells);
 		this.rewiringProbability = rewiringProbability;
 	}
 	
@@ -35,7 +36,7 @@ public class WattsStrogatzTopology extends SmallWorldTopology {
 			ICell sourceCell = Global.simulator.getBoard().getCurrentState().getCell(source.x, source.y);
 			ICell targetCell = Global.simulator.getBoard().getCurrentState().getCell(target.x, target.y);
 			if(sourceCell.isSelected() || targetCell.isSelected()
-					|| !REWIRE_ONLY_SELECTED_CELLS) {
+					|| !rewireOnlySelectedCells) {
 				rewireEdge(edgeArray[i], dimensions, graph);
 			}
 		}
@@ -59,5 +60,9 @@ public class WattsStrogatzTopology extends SmallWorldTopology {
 	private static boolean pointsHaveSameCoordinates(Point p1, Point p2) {
 		return p1.x == p2.x 
 				&& p1.y == p2.y;
+	}
+	@Override
+	public float getRewiringProbability() {
+		return rewiringProbability;
 	}
 }

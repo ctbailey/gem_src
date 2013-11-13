@@ -38,10 +38,13 @@ import gem.ui.board_panel.ICellChangeAction;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
 
 import java.util.*;
 
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -54,8 +57,8 @@ public class ConwayBoard extends AbstractBoard {
 	private ConwaySerializedState stateInClipboard;
 	private ConwayRule currentRules;
 	private int currentNumberOfIterations = 0;
-	private static final BoardDimensions DEFAULT_DIMENSIONS = new BoardDimensions(AbstractState.DEFAULT_WIDTH, AbstractState.DEFAULT_HEIGHT); 
-	
+	private boolean randomizeOnlySelectedCells = false;
+	private static final BoardDimensions DEFAULT_DIMENSIONS = new BoardDimensions(AbstractState.DEFAULT_WIDTH, AbstractState.DEFAULT_HEIGHT);
 	private static final ConwayRule DEFAULT_RULE = ConwayRule.baileySet();
 	
 	public ConwayBoard() {
@@ -140,7 +143,7 @@ public class ConwayBoard extends AbstractBoard {
 	@Override
 	public void randomizeBoard(IRandomNumberSource randomNumberSource, double threshold, CellState stateToRandomize) {
 		try{
-			setCurrentState(currentState.getCopyWithRandomizedState(randomNumberSource, threshold, stateToRandomize));
+			setCurrentState(currentState.getCopyWithRandomizedState(randomNumberSource, threshold, stateToRandomize, randomizeOnlySelectedCells));
 		} catch(NoRandomNumbersRemainingException exception) {
 			showNoRandomNumbersRemainingDialog(exception.explanationForUser);
 		}
@@ -228,6 +231,15 @@ public class ConwayBoard extends AbstractBoard {
 		JMenuItem userBoardSizeItem = new JMenuItem("Resize board");
 		userBoardSizeItem.addActionListener(new ResizeBoardListener());
 		menuItems.add(userBoardSizeItem);
+		
+		JCheckBoxMenuItem randomizeOnlySelectedCellsItem = new JCheckBoxMenuItem("Randomize only selected cells");
+		randomizeOnlySelectedCellsItem.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				randomizeOnlySelectedCells = e.getStateChange() == ItemEvent.SELECTED;
+			}
+		});
+		menuItems.add(randomizeOnlySelectedCellsItem);
 		return menuItems;
 	}
 	

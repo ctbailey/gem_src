@@ -65,4 +65,8 @@ public abstract class MooreTopology implements INeighborTopology {
 			Debug.printLine(neighborQuantity + ", " + neighborQuantityToNumberOfCells.get(neighborQuantity));
 		}
 	}
+	@Override
+	public float getRewiringProbability() {
+		return 0;
+	}
 }

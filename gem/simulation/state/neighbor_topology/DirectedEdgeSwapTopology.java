@@ -14,7 +14,8 @@ import gem.simulation.board.BoardDimensions;
 public class DirectedEdgeSwapTopology extends SmallWorldTopology {
 	private final float rewiringProbability;
 	private static final Random randomNumberGenerator = new Random();
-	public DirectedEdgeSwapTopology(float rewiringProbability) {
+	public DirectedEdgeSwapTopology(float rewiringProbability, boolean rewireOnlySelectedCells) {
+		super(rewireOnlySelectedCells);
 		this.rewiringProbability = rewiringProbability; 
 	}
 	
@@ -30,7 +31,7 @@ public class DirectedEdgeSwapTopology extends SmallWorldTopology {
 		Set<DefaultWeightedEdge> edgesAlreadyIteratedOver = new LinkedHashSet<DefaultWeightedEdge>();
 		for(Point p : nodes) {
 			if(Global.simulator.getBoard().getCurrentState().getCell(p.x, p.y).isSelected()
-					|| !REWIRE_ONLY_SELECTED_CELLS) {
+					|| !rewireOnlySelectedCells) {
 				rewireSingleNode(p, dimensions, graph, edgesAlreadyIteratedOver);
 			}
 		}
@@ -101,5 +102,8 @@ public class DirectedEdgeSwapTopology extends SmallWorldTopology {
 		return graph.areNeighbors(source1, target2) // source1 can't already be a neighbor of target2 (or swapping would add an extra edge between source1 and target 2) 
 				|| graph.areNeighbors(source2, target1); // ditto
 	}
-
+	@Override
+	public float getRewiringProbability() {
+		return rewiringProbability;
+	}
 }

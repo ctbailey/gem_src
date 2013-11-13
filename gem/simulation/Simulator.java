@@ -21,8 +21,11 @@ package gem.simulation;
 
 import gem.*;
 import gem.simulation.board.AbstractBoard;
+import gem.simulation.board.BoardDimensions;
 import gem.simulation.board.ConwayBoard;
+import gem.simulation.state.AbstractConwayCell;
 import gem.simulation.state.AbstractConwayState;
+import gem.simulation.state.ConwayState;
 import gem.simulation.state.IState;
 import gem.simulation.state.ICell.CellState;
 import gem.talk_to_outside_world.AutomatonSerializable;
@@ -177,7 +180,7 @@ public class Simulator implements AutomatonSerializable, Runnable, IGoForwardLis
 		
 		Object[] savedAutomaton = new Object[1];
 		
-		savedAutomaton[0] = getBoard().getCurrentState();
+		savedAutomaton[0] = getBoard().getCurrentState().getCellsCopy();
 		
 		try {
 			output.writeObject(savedAutomaton);
@@ -188,9 +191,12 @@ public class Simulator implements AutomatonSerializable, Runnable, IGoForwardLis
 	public void load(ObjectInputStream input) {
 		try{
 			Object[] loadedAutomaton = (Object[]) input.readObject();
-			gem.simulation.state.ConwayState loadedState = (gem.simulation.state.ConwayState) loadedAutomaton[0];			
+			AbstractConwayCell[][] loadedCells = (AbstractConwayCell[][]) loadedAutomaton[0];			
 			ConwayBoard board = (ConwayBoard) getBoard();
-			AbstractConwayState newState = loadedState.getModifiedCopy(Global.topologyManager.createNeighborGraphWithCurrentTopology(loadedState.getDimensions()));
+			AbstractConwayState newState = new ConwayState(loadedCells, Global.topologyManager.createNeighborGraphWithCurrentTopology(new BoardDimensions(loadedCells)));
+//			ConwayState loadedState = (ConwayState) loadedAutomaton[0];
+//			ConwayBoard board = (ConwayBoard) getBoard();
+//			AbstractConwayState newState = loadedState.getModifiedCopy(Global.topologyManager.createNeighborGraphWithCurrentTopology(loadedState.getDimensions()));
 			board.setCurrentState(newState);
 		} catch(Exception ex) {
 			ex.printStackTrace();

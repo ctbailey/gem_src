@@ -7,4 +7,5 @@ import gem.simulation.board.BoardDimensions;
 
 public interface INeighborTopology {
 	public INeighborGraph createGraphWithThisTopology(BoardDimensions dimensions);
+	public float getRewiringProbability();
 }

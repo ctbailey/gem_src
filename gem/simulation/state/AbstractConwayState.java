@@ -24,7 +24,6 @@ public abstract class AbstractConwayState extends AbstractState {
 	private static final long serialVersionUID = 1L;
 	private AbstractConwayCell[][] cells;
 	public static final CellState DEFAULT_CELL_STATE = CellState.DEAD;
-	private static final boolean RANDOMIZE_ONLY_SELECTED_CELLS = true;
 	
 	public AbstractConwayState(BoardDimensions dimensions) {
 		this(dimensions, Global.topologyManager.createNeighborGraphWithCurrentTopology(dimensions));
@@ -65,7 +64,9 @@ public abstract class AbstractConwayState extends AbstractState {
 	public Point getRandomCellLocation() {
 		return Utility.getRandomIndexPair(cells);
 	}
-	
+	public ICell[][] getCellsCopy() {
+		return copyCells();
+	}
 	protected AbstractConwayCell[][] copyCells() {
 		AbstractConwayCell[][] cellsCopy = new AbstractConwayCell[getWidth()][getHeight()];
 		for(int x = 0; x < getWidth(); x++) {
@@ -172,7 +173,7 @@ public abstract class AbstractConwayState extends AbstractState {
 		}
 		return p;
 	}
-	protected AbstractConwayCell[][] randomlyModifyCellState(IRandomNumberSource randomNumberSource, double threshold, CellState stateToRandomize) 
+	protected AbstractConwayCell[][] randomlyModifyCellState(IRandomNumberSource randomNumberSource, double threshold, CellState stateToRandomize, boolean randomizeOnlySelectedCells) 
 			throws NoRandomNumbersRemainingException {
 		AbstractConwayCell[][] randomlyGeneratedCells = new AbstractConwayCell[getWidth()][getHeight()];
 		
@@ -183,7 +184,7 @@ public abstract class AbstractConwayState extends AbstractState {
 				if((currentCellState == stateToRandomize
 						|| currentCellState == CellState.DEAD)
 					&& (currentCell.isSelected() 
-						|| !RANDOMIZE_ONLY_SELECTED_CELLS)
+						|| !randomizeOnlySelectedCells)
 					) {
 					randomlyGeneratedCells[x][y] = (AbstractConwayCell) currentCell.getModifiedCopy((getRandomCellState(randomNumberSource, threshold, stateToRandomize)));
 				} else {
@@ -207,7 +208,7 @@ public abstract class AbstractConwayState extends AbstractState {
 	public abstract AbstractConwayState getCopyWithClearedSelection();
 	public abstract AbstractConwayState createDefault(BoardDimensions dimensions);
 	public abstract AbstractConwayState createDefault(BoardDimensions dimensions, INeighborGraph neighbor);
- 	public abstract AbstractConwayState getCopyWithRandomizedState(IRandomNumberSource randomNumberSource, double threshold, CellState stateToRandomize) 
+ 	public abstract AbstractConwayState getCopyWithRandomizedState(IRandomNumberSource randomNumberSource, double threshold, CellState stateToRandomize, boolean randomizeOnlySelectedCells) 
  		throws NoRandomNumbersRemainingException;
 	public abstract AbstractConwayState getModifiedCopy(INeighborGraph g);
 }

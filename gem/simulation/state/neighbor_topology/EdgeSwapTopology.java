@@ -16,7 +16,8 @@ import gem.simulation.state.IState;
 public class EdgeSwapTopology extends SmallWorldTopology {
 	private final float rewiringProbability;
 	private static final Random randomNumberGenerator = new Random();
-	public EdgeSwapTopology(float rewiringProbability) {
+	public EdgeSwapTopology(float rewiringProbability, boolean rewireOnlySelectedCells) {
+		super(rewireOnlySelectedCells);
 		this.rewiringProbability = rewiringProbability; 
 	}
 	
@@ -32,7 +33,7 @@ public class EdgeSwapTopology extends SmallWorldTopology {
 		Set<DefaultWeightedEdge> edgesAlreadyIteratedOver = new LinkedHashSet<DefaultWeightedEdge>();
 		for(Point p : nodes) {
 			if(Global.simulator.getBoard().getCurrentState().getCell(p.x, p.y).isSelected()
-				|| !REWIRE_ONLY_SELECTED_CELLS) {
+				|| !rewireOnlySelectedCells) {
 				rewireSingleNode(p, dimensions, graph, edgesAlreadyIteratedOver);
 			}
 		}
@@ -119,5 +120,10 @@ public class EdgeSwapTopology extends SmallWorldTopology {
 	private boolean swapWouldAddExtraEdgeBetweenNodes(Point source1, Point source2, Point target1, Point target2, INeighborGraph graph) {
 		return graph.areNeighbors(source1, target2) // source1 can't already be a neighbor of target2 (or swapping would add an extra edge between source1 and target 2) 
 				|| graph.areNeighbors(source2, target1); // ditto
+	}
+
+	@Override
+	public float getRewiringProbability() {
+		return rewiringProbability;
 	}
 }

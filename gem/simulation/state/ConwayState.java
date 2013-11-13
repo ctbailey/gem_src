@@ -73,9 +73,9 @@ public final class ConwayState extends AbstractConwayState {
 	public ConwayState createDefault(BoardDimensions dimensions, INeighborGraph neighborGraph) {
 		return new ConwayState(dimensions, neighborGraph);
 	}
- 	public ConwayState getCopyWithRandomizedState(IRandomNumberSource randomNumberSource, double threshold, CellState stateToRandomize) 
+ 	public ConwayState getCopyWithRandomizedState(IRandomNumberSource randomNumberSource, double threshold, CellState stateToRandomize, boolean randomizeOnlySelectedCells) 
 			throws NoRandomNumbersRemainingException {
-		return new ConwayState(randomlyModifyCellState(randomNumberSource, threshold, stateToRandomize), neighborGraph);
+		return new ConwayState(randomlyModifyCellState(randomNumberSource, threshold, stateToRandomize, randomizeOnlySelectedCells), neighborGraph);
 	}
 	
 	public String toString() {
